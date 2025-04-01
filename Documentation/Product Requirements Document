@@ -1,0 +1,86 @@
+# Elevator Pitch
+
+Kudu is a comprehensive private wealth management system designed for high net worth families to effortlessly oversee their financials and cash flow. This modern dashboard-style web app integrates property management, investment tracking with advanced forecasting (including actuals vs. forecasts), credit facility monitoring, and entity management—with real-time alerts, notifications, and collaboration tools—ensuring seamless decision-making and reporting.
+
+# Who is This App For
+
+- **High Net Worth Families:** Who need a consolidated view of their wealth and cash flow.
+- **Family Members:** Who require an overall financial snapshot, detailed reporting, and collaboration features for notes and updates.
+- **Property Managers:** Responsible for managing and monitoring investment properties, receiving real-time notifications, and collaborating on property notes.
+- **Investors/Traders:** Looking to add and run trading algorithms with robust backtesting, advanced forecasting, and analytics capabilities.
+- **Financial Administrators/Accountants:** Needing detailed financial breakdowns, including actual vs. forecast comparisons, for accurate reporting and tax purposes.
+
+# Functional Requirements
+
+- **Dashboard Overview:**
+    - Display key performance indicators (KPIs) including cash flow charts, upcoming disbursements, and actual vs. forecast comparisons.
+    - Provide a clear snapshot of the family’s overall financial health with real-time updates and alerts.
+- **Property Management:**
+    - Add, edit, and manage properties.
+    - Upload and store documents specific to each property.
+    - Project cash flows, including developments (with stages), rental income, rates, and taxes.
+    - Allow users to add monthly actuals and compare them with forecasts.
+- **Investment Management:**
+    - Add and manage trading algorithms that can be written in various programming languages.
+    - Include backtesting, analytics, and advanced forecasting features, utilising demo accounts via broker integrations for realistic simulations.
+    - Enable monthly updates to actual performance data and compare them against forecasts.
+- **Credit Management:**
+    - Track and manage credit facilities with banks.
+    - Monitor leverage used for property and investment acquisition.
+- **Entity Management:**
+    - Set up and manage different corporate structures and trusts.
+    - Track assets, properties, and cash flows within each entity.
+    - Generate detailed financial reports (Income statements, Balance sheets, and Cash flow statements) for custom periods.
+- **User Management:**
+    - Implement role-based and user-level access control.
+    - Define two primary roles:
+        - **Family Member:** Access to the overall family dashboard and assigned features.
+        - **Property Manager:** Access restricted to property management functionalities for the properties they are assigned to.
+- **External Integrations:**
+    - Integrate with FXCM and other broker APIs.
+    - Connect with automation tools such as Zapier or Make for streamlined workflows.
+- **Collaboration & Communication:**
+    - Enable real-time alerts and notifications for key events and automations.
+    - Include a collaboration module allowing users to leave comments or notes on properties, investments, and other assets.
+    - Implement @ mentions within comments to notify specific users (e.g., property managers) for timely communication.
+
+# User Stories
+
+- **Family Member:**
+    - "As a family member, I want to view an overall financial snapshot with actual vs. forecast data so I can quickly understand our cash flow and asset performance."
+    - "As a family member, I need to generate detailed financial reports for any chosen period to support tax and accounting requirements."
+- **Property Manager:**
+    - "As a property manager, I want to add properties, manage associated documents, and track cash flows including actuals vs. forecasts, ensuring efficient oversight."
+    - "As a property manager, I need to receive notifications and @mentions when comments or notes are left that require my attention."
+- **Investor/Trader:**
+    - "As an investor, I need to add and run trading algorithms with robust backtesting, advanced forecasting, and analytics capabilities, so I can optimise my trading strategies."
+    - "As an investor, I want to update actual performance data monthly and compare it with forecasts for performance review."
+- **Financial Administrator:**
+    - "As a financial administrator, I want to generate comprehensive financial statements with detailed asset breakdowns and actual vs. forecast comparisons, so I can present accurate reports during tax time."
+
+# User Interface
+
+- **Dashboard Layout:**
+    - A modern, minimalistic design prioritising clarity and ease of use.
+    - The overview page displays essential KPIs, including cash flow charts, upcoming disbursements, and actual vs. forecast comparisons.
+    - Real-time alerts and notifications are integrated within the dashboard for timely updates.
+- **Navigation:**
+    - An intuitive menu structure enabling easy navigation between Overview, Properties, Investments, Credit Facilities, Entities, Collaboration, and User Management sections.
+- **Property Management UI:**
+    - Detailed property cards with embedded file storage options.
+    - Interactive charts for projecting cash flows, including actuals vs. forecasts.
+    - Comment sections with @ mention functionality for collaboration between family members and property managers.
+- **Investment Module UI:**
+    - Interface for adding and managing trading algorithms.
+    - Visual tools to display backtesting results, performance analytics, and advanced forecasting metrics.
+    - Options to update actuals and view comparisons with forecasts.
+- **Reporting Interface:**
+    - Customisable report generator allowing selection of specific time periods.
+    - Options to view detailed breakdowns per asset or an overall summary, including actual vs. forecast data.
+- **User Management UI:**
+    - Simple, secure access control settings to manage roles and permissions.
+    - Separate views tailored for Family Members and Property Managers based on their access rights.
+- **Collaboration & Notifications UI:**
+    - Integrated messaging and commenting features within relevant modules.
+    - @ mention system that sends real-time notifications to designated users.
+    - Dashboard widgets to highlight recent alerts and collaborative updates.

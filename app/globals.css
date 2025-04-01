@@ -1,0 +1,573 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 5% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 5% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 5% 25%;
+
+    --primary: 240 5% 25%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 5% 25%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 40%;
+
+    --accent: 240 5% 94%;
+    --accent-foreground: 240 5% 25%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 92%;
+    --input: 240 5% 92%;
+    --ring: 240 5% 25%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 240 5% 97%;
+    --sidebar-foreground: 240 5% 25%;
+    --sidebar-primary: 240 5% 25%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 94%;
+    --sidebar-accent-foreground: 240 5% 25%;
+    --sidebar-border: 240 5% 92%;
+    --sidebar-ring: 240 5% 25%;
+  }
+
+  .dark {
+    --background: 240 5% 8%;
+    --foreground: 240 5% 98%;
+
+    --card: 240 5% 11%;
+    --card-foreground: 240 5% 98%;
+
+    --popover: 240 5% 11%;
+    --popover-foreground: 240 5% 98%;
+
+    --primary: 240 5% 65%;
+    --primary-foreground: 240 5% 8%;
+
+    --secondary: 240 5% 14%;
+    --secondary-foreground: 240 5% 98%;
+
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 240 5% 14%;
+    --accent-foreground: 240 5% 98%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 14%;
+    --input: 240 5% 14%;
+    --ring: 240 5% 65%;
+
+    --sidebar-background: 240 5% 11%;
+    --sidebar-foreground: 240 5% 98%;
+    --sidebar-primary: 240 5% 65%;
+    --sidebar-primary-foreground: 240 5% 8%;
+    --sidebar-accent: 240 5% 14%;
+    --sidebar-accent-foreground: 240 5% 98%;
+    --sidebar-border: 240 5% 14%;
+    --sidebar-ring: 240 5% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom animations - subtle and minimal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.6s ease-out forwards;
+}
+
+/* Custom scrollbar - minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+/* Card hover effects - subtle */
+.card-hover-effect {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard card styles - minimal */
+.dashboard-card {
+  @apply relative overflow-hidden;
+}
+
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: hsl(var(--primary) / 0.7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover::before {
+  opacity: 1;
+}
+
+/* Gradient text - simplified */
+.gradient-text {
+  @apply text-primary font-medium tracking-tight;
+}
+
+/* Glass effect - subtle */
+.glass-effect {
+  @apply bg-background/90 backdrop-blur-sm border border-border/50;
+}
+
+/* Improved chart tooltips */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  @apply bg-background border border-border/50 shadow-sm rounded-md px-3 py-2;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
+  @apply text-foreground font-medium text-sm mb-1;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item {
+  @apply text-xs text-foreground;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-name,
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-item-value {
+  @apply text-foreground;
+}
+
+/* Improved table styles */
+.data-table {
+  @apply w-full border-collapse;
+}
+
+.data-table th {
+  @apply bg-muted/30 text-muted-foreground font-medium text-xs px-4 py-3 text-left;
+}
+
+.data-table td {
+  @apply px-4 py-3 border-b border-border/50;
+}
+
+.data-table tr:last-child td {
+  @apply border-b-0;
+}
+
+.data-table tr:hover td {
+  @apply bg-muted/20;
+}
+
+/* Status indicators - subtle */
+.status-indicator {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-indicator-dot {
+  @apply w-1.5 h-1.5 rounded-full mr-1.5;
+}
+
+/* Form elements - refined */
+.form-input-wrapper {
+  @apply relative;
+}
+
+.form-input-wrapper .form-input-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground;
+}
+
+.form-input-wrapper input {
+  @apply pl-9;
+}
+
+/* Breadcrumbs - minimal */
+.breadcrumb {
+  @apply flex items-center text-xs text-muted-foreground;
+}
+
+.breadcrumb-item {
+  @apply flex items-center;
+}
+
+.breadcrumb-separator {
+  @apply mx-2 text-muted-foreground/40;
+}
+
+.breadcrumb-current {
+  @apply font-medium text-foreground;
+}
+
+/* Chart customizations */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  @apply stroke-border/50;
+}
+
+.recharts-cartesian-axis-line {
+  @apply stroke-border/70;
+}
+
+.recharts-cartesian-axis-tick-line {
+  @apply stroke-border/70;
+}
+
+.recharts-text {
+  @apply fill-foreground text-xs;
+}
+
+.recharts-legend-item-text {
+  @apply text-xs fill-foreground;
+}
+
+/* Button refinements */
+button {
+  @apply transition-all duration-200;
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-1 ring-ring/50 ring-offset-0;
+}
+
+/* Ensure proper contrast for buttons and text */
+.button-text-fix {
+  color: hsl(var(--foreground));
+}
+
+.primary-button-text-fix {
+  color: hsl(var(--primary-foreground));
+}
+
+/* Improve dropdown menu contrast */
+.dropdown-menu-content {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Ensure dialog content has proper contrast */
+.dialog-content {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Fix badge text contrast */
+.badge-text-fix {
+  color: hsl(var(--foreground));
+}
+
+/* Ensure proper contrast for card content */
+.card-content-fix {
+  color: hsl(var(--foreground));
+}
+
+/* Fix tab content contrast */
+.tabs-content-fix {
+  color: hsl(var(--foreground));
+}
+
+/* Ensure proper contrast for tabs */
+.tabs-trigger {
+  @apply text-foreground;
+}
+
+/* Ensure proper contrast for card content */
+.card-title {
+  @apply text-foreground;
+}
+
+.card-description {
+  @apply text-muted-foreground;
+}
+
+/* Ensure proper contrast for badges */
+.badge {
+  @apply text-foreground;
+}
+
+/* Ensure proper contrast for buttons */
+.button-primary {
+  @apply text-primary-foreground;
+}
+
+.button-outline {
+  @apply text-foreground;
+}
+
+/* Add these styles to the end of your globals.css file */
+
+/* Social sidebar styles */
+.social-sidebar-enter {
+  transform: translateX(100%);
+}
+
+.social-sidebar-enter-active {
+  transform: translateX(0);
+  transition: transform 0.3s ease-out;
+}
+
+.social-sidebar-exit {
+  transform: translateX(0);
+}
+
+.social-sidebar-exit-active {
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in;
+}
+
+/* Chat message styles */
+.chat-message {
+  max-width: 80%;
+  word-break: break-word;
+}
+
+.chat-message-current-user {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem 0 0.5rem 0.5rem;
+}
+
+.chat-message-other-user {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-radius: 0 0.5rem 0.5rem 0.5rem;
+}
+
+/* Status indicators */
+.status-indicator-online {
+  background-color: hsl(142, 76%, 36%);
+}
+
+.status-indicator-away {
+  background-color: hsl(38, 92%, 50%);
+}
+
+.status-indicator-offline {
+  background-color: hsl(var(--muted));
+}
+
+/* Mention and update card styles */
+.mention-card {
+  transition: background-color 0.2s ease;
+}
+
+.mention-card:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.mention-card-unread {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+/* Ensure proper contrast for social sidebar elements */
+.social-sidebar-text {
+  color: hsl(var(--foreground));
+}
+
+.social-sidebar-muted-text {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Add smooth transitions for the social panel */
+.social-panel-transition {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Theme transition */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode adjustments */
+.dark .dashboard-card {
+  @apply border-border/10;
+}
+
+.dark .glass-effect {
+  @apply bg-background/80 border-border/30;
+}
+
+/* Light mode specific adjustments */
+:root:not(.dark) .dashboard-card {
+  @apply shadow-sm;
+}
+
+/* Theme preview */
+.theme-preview {
+  @apply relative overflow-hidden rounded-md border p-4;
+  height: 160px;
+  width: 100%;
+}
+
+.theme-preview-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.theme-preview-logo {
+  @apply flex items-center gap-2;
+}
+
+.theme-preview-logo-icon {
+  @apply h-6 w-6 rounded-md flex items-center justify-center;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.theme-preview-logo-text {
+  @apply text-sm font-medium;
+  color: hsl(var(--foreground));
+}
+
+.theme-preview-content {
+  @apply space-y-2;
+}
+
+.theme-preview-card {
+  @apply rounded-md p-2 text-xs;
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+.theme-preview-button {
+  @apply rounded-md px-2 py-1 text-xs inline-block mt-2;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Property card styles */
+.property-card {
+  @apply relative overflow-hidden rounded-lg border transition-all duration-200;
+  background: hsl(var(--card));
+}
+
+.property-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  @apply transition-opacity duration-200;
+}
+
+.light .property-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+}
+
+.light .property-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.dark .property-card::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 40%);
+}
+
+.dark .property-card:hover::before {
+  opacity: 1;
+}
+
+/* Status badge styles */
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium transition-colors;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.dark .status-badge {
+  background: hsl(var(--primary) / 0.2);
+}
+
+/* Occupancy bar styles */
+.occupancy-bar {
+  @apply h-2 rounded-full overflow-hidden bg-secondary;
+}
+
+.occupancy-bar-fill {
+  @apply h-full transition-all duration-300;
+  background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+}
+
+/* Button styles */
+.action-button {
+  @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.action-button:hover {
+  background: hsl(var(--secondary) / 0.8);
+}
+
+.dark .action-button {
+  background: hsl(var(--secondary) / 0.5);
+}
+
+.dark .action-button:hover {
+  background: hsl(var(--secondary) / 0.7);
+}
+

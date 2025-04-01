@@ -1,0 +1,160 @@
+## System Design
+
+- **Overview:**
+    - A web-based dashboard application for private wealth management tailored for high net worth families.
+    - Provides an integrated view of financials including property management, investment tracking, credit management, and entity oversight.
+- **Modular Architecture:**
+    - Each core function (properties, investments, credit, entities) developed as separate NextJS modules.
+    - Supports live updates, real-time alerts, notifications, and external API integrations.
+- **Real-Time Functionality:**
+    - Incorporates external data sources (FXCM, broker APIs) and automation tools for timely financial updates.
+    - Utilizes Supabase's real-time subscriptions for live data updates.
+
+## Architecture Pattern
+
+- **Modular Monolith with NextJS:**
+    - Organized into clearly defined NextJS modules for properties, investments, credit, and entities.
+    - Designed for potential transition to microservices as the application scales.
+- **Separation of Concerns:**
+    - Business logic, presentation logic, and integration layers kept separate.
+    - NextJS App Router for clean routing and organization.
+- **Service Layer:**
+    - Dedicated layer for business rules and API interactions via NextJS API routes.
+    - Supabase SDK integration for database operations and authentication.
+
+## Development Tooling
+
+- **Cursor Integration:**
+    - Leverage Cursor AI-powered code editor for enhanced development efficiency.
+    - Utilize Cursor's code generation and refactoring capabilities for consistent code quality.
+    - Shared Cursor sessions for collaborative development and pair programming.
+- **Code Quality:**
+    - Implement standardized linting and formatting rules within Cursor.
+    - Utilize Cursor's AI capabilities for code reviews and suggestions.
+
+## State Management
+
+- **Frontend:**
+    - Leverage NextJS with either Redux or React Context API for global state.
+    - Organize state slices based on functional modules.
+    - Consider Zustand for lightweight state management.
+- **Backend:**
+    - Utilize Supabase's PostgreSQL database for robust data persistence.
+    - Implement row-level security policies in Supabase for fine-grained access control.
+
+## Data Flow
+
+- **User Interaction:**
+    - Client (NextJS app) communicates with Supabase via their JavaScript SDK.
+    - Real-time data updates delivered using Supabase's real-time subscriptions.
+- **Backend Processing:**
+    - API calls processed by NextJS API routes when custom logic is needed.
+    - Direct database operations via Supabase client SDK when appropriate.
+- **External Integrations:**
+    - Periodic ingestion of data from FXCM and broker APIs via NextJS API routes.
+    - Edge functions in Supabase for serverless processing of external data.
+
+## Technical Stack
+
+- **Frontend:**
+    - **Framework:** NextJS (App Router architecture)
+    - **UI Components:** shadcn for modern UI library
+    - **Icons:** lucide for lightweight, scalable icons
+    - **Notifications:** sonner toast for real-time user alerts
+    - **State Management:** Context API or Redux Toolkit
+- **Backend:**
+    - NextJS API routes for custom business logic
+    - Supabase for database, authentication, storage, and real-time subscriptions
+- **Database:**
+    - PostgreSQL (managed through Supabase)
+    - Supabase's row-level security for data access control
+- **External Services:**
+    - Integrations with FXCM, broker APIs, and automation platforms
+- **Deployment:**
+    - Vercel for NextJS application hosting
+    - Supabase for backend infrastructure
+
+## Authentication Process
+
+- **Authentication:**
+    - Utilize Supabase Auth with JWT for secure authentication
+    - Implement role-based access control (Family Members, Property Managers, Admin)
+    - Enable social login options through Supabase Auth providers
+    - Multi-factor authentication support via Supabase
+- **Authorization:**
+    - Row-level security policies in Supabase database
+    - NextJS middleware for route protection and access control
+
+## Route Design
+
+- **NextJS App Router Structure:**
+    - `/app/dashboard/` - Overall KPIs and summary data
+    - `/app/properties/` - Property listings and management
+    - `/app/investments/` - Investment tracking and algorithms
+    - `/app/credit/` - Credit facilities management
+    - `/app/entities/` - Corporate structures and trusts
+    - `/app/admin/` - User and role management
+- **API Routes:**
+    - `/app/api/dashboard/` - Dashboard data endpoints
+    - `/app/api/properties/` - Property management endpoints
+    - `/app/api/investments/` - Investment data endpoints
+    - `/app/api/credit/` - Credit information endpoints
+    - `/app/api/entities/` - Entity management endpoints
+    - `/app/api/admin/` - Admin function endpoints
+
+## API Design
+
+- **Design Principles:**
+    - RESTful design with clear, resource-based endpoints
+    - Direct Supabase SDK calls for standard CRUD operations
+    - Custom NextJS API routes for complex business logic
+- **Security:**
+    - Supabase RLS policies for database-level security
+    - NextJS middleware for API route protection
+- **Error Handling:**
+    - Standardized error responses with appropriate HTTP status codes
+- **Documentation:**
+    - Document APIs using tools like Swagger or Postman
+
+## Database Design (Supabase)
+
+- **auth.users** (Managed by Supabase):
+    - Extends with: user_role, permissions, profile data
+- **properties**:
+    - Fields: id, address, description, cash_flow_data, created_at, updated_at, user_id
+- **property_documents**:
+    - Fields: id, property_id, file_path, document_type, uploaded_at, user_id
+- **investments**:
+    - Fields: id, algorithm_details, backtesting_data, forecast_metrics, user_id
+- **credit_facilities**:
+    - Fields: id, bank_details, credit_limits, financial_metrics, user_id
+- **entities**:
+    - Fields: id, entity_type, name, description, associated_assets, cash_flow_data
+- **financial_reports**:
+    - Fields: id, report_type, date_range, data, entity_id
+- **comments**:
+    - Fields: id, content, created_at, user_id, entity_type, entity_id
+- **RLS Policies:**
+    - Row-level security policies implemented for all tables to enforce access control
+
+## Supabase-Specific Features
+
+- **Storage Buckets:**
+    - Dedicated buckets for property documents, investment reports, and entity documentation
+- **Edge Functions:**
+    - Serverless functions for integrating with external APIs (FXCM, brokers)
+    - Scheduled functions for periodic data updates and report generation
+- **Real-time Subscriptions:**
+    - Enable real-time updates for critical data like investment positions and notifications
+- **PostgreSQL Functions:**
+    - Custom database functions for complex calculations and data transformations
+
+## Development Workflow
+
+- **Cursor-Enhanced Development:**
+    - Use Cursor for AI-assisted code generation of NextJS components and API routes
+    - Leverage Cursor's pair programming features for collaborative development
+    - Utilize Cursor's code explanation features for knowledge sharing and documentation
+- **Version Control:**
+    - Git repository with branch protection and pull request reviews
+    - Cursor integration with GitHub for streamlined development

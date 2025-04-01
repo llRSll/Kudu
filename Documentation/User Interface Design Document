@@ -1,0 +1,66 @@
+# Kudu User Interface Design Document
+
+## Layout Structure
+
+- **Overview:**
+A clean, grid-based dashboard featuring a fixed sidebar for primary navigation and a spacious main content area.
+- **Modularity:**
+The main area is designed with modular cards and widgets that users can easily add, remove, or rearrange, giving them the flexibility to tailor their experience.
+
+## Core Components
+
+- **Dashboard Widgets:**
+KPI cards, dynamic charts (e.g., cash flow, actual vs. forecast comparisons), and alert panels.
+- **Data Modules:**
+Customisable cards for property management, investment tracking, credit facilities, and entity details.
+- **Collaboration Tools:**
+In-module comment sections with @ mention functionality for real-time notifications.
+- **Navigation:**
+A fixed sidebar with quick links to Overview, Properties, Investments, Credit Facilities, Entities, and **Admin**.
+
+## Interaction Patterns
+
+- **Modular Interaction:**
+Drag-and-drop functionality for rearranging dashboard widgets.
+- **Inline Editing:**
+Quick updates to data directly within modules for a streamlined experience.
+- **Responsive Alerts:**
+Real-time notifications and alerts for key updates, seamlessly integrated within the interface.
+- **Smooth Transitions:**
+Subtle hover states and animations that guide user interaction without overwhelming the visual design.
+
+## Visual Design Elements & Color Scheme
+
+- **Visual Aesthetic:**
+A modern, minimalistic design with a focus on clarity and simplicity.
+- **Colour Palette:**
+Light, neutral backgrounds with strategic accent colours to highlight important data and interactive elements.
+- **Visual Hierarchy:**
+Use of ample white space and clear separation between modules to ensure a focus on content and usability.
+
+## Mobile, Web App, Desktop Considerations
+
+- **Responsiveness:**
+Fully responsive design ensuring a consistent experience across desktop, tablet, and mobile devices.
+- **Navigation Adaptability:**
+A collapsible sidebar for smaller screens to maintain a clutter-free interface.
+- **Touch Interactions:**
+Optimised for touch on mobile devices with larger tap targets for interactive elements.
+
+## Typography
+
+- **Font Choice:**
+Clean sans-serif fonts that are modern and highly readable.
+- **Hierarchy:**
+Clear distinctions between headings, subheadings, and body text to guide user attention and improve content legibility.
+- **Consistency:**
+Consistent use of typography styles across all modules to ensure a unified look and feel.
+
+## Accessibility
+
+- **Standards Compliance:**
+High contrast modes and scalable text options to meet accessibility standards.
+- **Navigation:**
+Keyboard navigability and screen-reader friendly design to support users with varying needs.
+- **ARIA Labels:**
+Proper labelling and descriptive elements for interactive components to enhance usability for all users.
