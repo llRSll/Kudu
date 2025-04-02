@@ -11,8 +11,8 @@ export default function HomePage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        // If user is already logged in, redirect to properties
-        router.push("/properties")
+        // If user is already logged in, redirect to dashboard
+        router.push("/dashboard")
       } else {
         // If not logged in, redirect to login
         router.push("/login")
@@ -25,7 +25,7 @@ export default function HomePage() {
     <div className="h-screen flex items-center justify-center">
       <div className="animate-pulse text-xl text-muted-foreground">
         Loading...
-      </div>
+          </div>
     </div>
   )
 }

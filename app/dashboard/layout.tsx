@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
-export default function PropertiesLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode

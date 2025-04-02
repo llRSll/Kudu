@@ -191,11 +191,11 @@ export default function PropertiesPage() {
   return (
     <div className="flex flex-col gap-6 p-6 w-full">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Properties</h1>
-          <p className="text-muted-foreground">Manage your property portfolio</p>
+        <div className="animate-fade-in">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">Properties</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage your property portfolio</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 sm:flex-row animate-slide-up">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -209,11 +209,15 @@ export default function PropertiesPage() {
           <AddPropertyForm onAddProperty={handleAddProperty} />
         </div>
       </div>
-      <PortfolioSummary properties={filteredProperties} />
+      <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <PortfolioSummary properties={filteredProperties} />
+      </div>
       {isLoading ? (
-        <div className="text-center p-8">Loading properties...</div>
+        <div className="text-center p-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>Loading properties...</div>
       ) : (
-        <PropertyList properties={filteredProperties} />
+        <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <PropertyList properties={filteredProperties} />
+        </div>
       )}
     </div>
   )

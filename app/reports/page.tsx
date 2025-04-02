@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { ReportTemplates } from "@/components/reports/report-templates"
@@ -8,21 +10,25 @@ export default function ReportsPage() {
   return (
     <div className="flex flex-col gap-6 p-6 w-full">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Reports & Analytics</h1>
-          <p className="text-muted-foreground">Generate insights and analyze your wealth portfolio</p>
+        <div className="animate-fade-in">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">Reports & Analytics</h1>
+          <p className="text-muted-foreground text-sm mt-1">Generate insights and analyze your wealth portfolio</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 sm:flex-row animate-slide-up">
           <DateRangePicker />
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button className="gap-1">
+            <Plus className="h-4 w-4" />
             Create Custom Report
           </Button>
         </div>
       </div>
 
-      <RecentReports />
-      <ReportTemplates />
+      <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <RecentReports />
+      </div>
+      <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+        <ReportTemplates />
+      </div>
     </div>
   )
 }

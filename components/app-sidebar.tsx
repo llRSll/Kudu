@@ -57,7 +57,7 @@ export function AppSidebar() {
     {
       title: "Dashboard",
       icon: LayoutDashboard,
-      href: "/",
+      href: "/dashboard",
     },
     {
       title: "Properties",
@@ -112,10 +112,10 @@ export function AppSidebar() {
   ]
 
   return (
-    <Sidebar variant="inset">
+    <Sidebar variant="floating" collapsible="none" className="border-r bg-background">
       <SidebarHeader className="flex flex-col gap-0 px-3 py-2">
         <div className="flex items-center justify-between py-2">
-          <Link href="/" className="flex items-center gap-2 font-medium text-lg">
+          <Link href="/dashboard" className="flex items-center gap-2 font-medium text-lg">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
               <Home className="h-4 w-4" />
             </div>
