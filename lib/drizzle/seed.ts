@@ -105,8 +105,24 @@ async function seed() {
     { id: nodeCrypto.randomUUID(), name: 'Williams Household', created_at: new Date(), updated_at: new Date() },
     { id: nodeCrypto.randomUUID(), name: 'Brown Group', created_at: new Date(), updated_at: new Date() },
   ];
-  await seedDb.insert(schema.Families).values(families);
+  await seedDb.insert(schema.Families).values(families).onConflictDoNothing();
   const dbFamilies: (typeof schema.Families.$inferSelect)[] = await seedDb.select().from(schema.Families);
+
+  // --- 4.1 Family Roles --- (NEW)
+  const familyRoles = [
+    { id: nodeCrypto.randomUUID(), name: 'Parent', description: 'Primary guardian or head of household.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Child', description: 'Dependent child within the family.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Spouse', description: 'Partner of a primary member.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Trustee', description: 'Manages assets on behalf of the family/member.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Beneficiary', description: 'Receives benefits from family assets/trusts.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Head', description: 'Head of the family or household.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Member', description: 'General family member.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Lead', description: 'Lead member or representative.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Associate', description: 'Associate member with limited connection.', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), name: 'Other', description: 'Other relationship type.', created_at: new Date(), updated_at: new Date() },
+  ];
+  await seedDb.insert(schema.FamilyRoles).values(familyRoles).onConflictDoNothing({ target: schema.FamilyRoles.name });
+  const dbFamilyRoles: (typeof schema.FamilyRoles.$inferSelect)[] = await seedDb.select().from(schema.FamilyRoles);
 
   // --- 5. Users --- (Adding more examples with different roles)
   const users = [
@@ -142,19 +158,28 @@ async function seed() {
   const frank = findOrFail(dbUsers, (u: typeof schema.Users.$inferSelect) => u.email === 'frank@brown.net', 'User frank@brown.net not found');
   const grace = findOrFail(dbUsers, (u: typeof schema.Users.$inferSelect) => u.email === 'grace@brown.net', 'User grace@brown.net not found');
 
+  // Get family role IDs
+  const headRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Head', 'Head family role not found');
+  const spouseRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Spouse', 'Spouse family role not found');
+  const parentRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Parent', 'Parent family role not found');
+  const childRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Child', 'Child family role not found');
+  const memberRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Member', 'Member family role not found');
+  const leadRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Lead', 'Lead family role not found');
+  const associateRole = findOrFail(dbFamilyRoles, (r: typeof schema.FamilyRoles.$inferSelect) => r.name === 'Associate', 'Associate family role not found');
+
   await seedDb.insert(schema.FamilyMembers).values([
     // Smith
-    { id: nodeCrypto.randomUUID(), user_id: alice.id, family_id: smithFamily.id, role: 'Head', created_at: new Date(), updated_at: new Date() },
-    { id: nodeCrypto.randomUUID(), user_id: bob.id, family_id: smithFamily.id, role: 'Spouse', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: alice.id, family_id: smithFamily.id, family_role_id: headRole.id, created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: bob.id, family_id: smithFamily.id, family_role_id: spouseRole.id, created_at: new Date(), updated_at: new Date() },
     // Johnson
-    { id: nodeCrypto.randomUUID(), user_id: carol.id, family_id: johnsonFamily.id, role: 'Parent', created_at: new Date(), updated_at: new Date() },
-    { id: nodeCrypto.randomUUID(), user_id: dan.id, family_id: johnsonFamily.id, role: 'Child', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: carol.id, family_id: johnsonFamily.id, family_role_id: parentRole.id, created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: dan.id, family_id: johnsonFamily.id, family_role_id: childRole.id, created_at: new Date(), updated_at: new Date() },
     // Williams
-    { id: nodeCrypto.randomUUID(), user_id: eve.id, family_id: williamsFamily.id, role: 'Member', created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: eve.id, family_id: williamsFamily.id, family_role_id: memberRole.id, created_at: new Date(), updated_at: new Date() },
     // Brown
-    { id: nodeCrypto.randomUUID(), user_id: frank.id, family_id: brownFamily.id, role: 'Lead', created_at: new Date(), updated_at: new Date() },
-    { id: nodeCrypto.randomUUID(), user_id: grace.id, family_id: brownFamily.id, role: 'Associate', created_at: new Date(), updated_at: new Date() },
-  ]);
+    { id: nodeCrypto.randomUUID(), user_id: frank.id, family_id: brownFamily.id, family_role_id: leadRole.id, created_at: new Date(), updated_at: new Date() },
+    { id: nodeCrypto.randomUUID(), user_id: grace.id, family_id: brownFamily.id, family_role_id: associateRole.id, created_at: new Date(), updated_at: new Date() },
+  ]).onConflictDoNothing();
 
   // --- 7. UserRoles --- (Mapping new users/roles)
   await seedDb.insert(schema.UserRoles).values([

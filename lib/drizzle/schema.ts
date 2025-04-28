@@ -28,12 +28,21 @@ export const Families = pgTable('families', {
   updated_at: timestamp('updated_at', { withTimezone: true }),
 });
 
+// 2.1) FAMILY_ROLES
+export const FamilyRoles = pgTable('family_roles', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(), 
+  description: text('description'),
+  created_at: timestamp('created_at', { withTimezone: true }),
+  updated_at: timestamp('updated_at', { withTimezone: true }),
+});
+
 // 3) FAMILY_MEMBERS (pivot)
 export const FamilyMembers = pgTable('family_members', {
   id: uuid('id').primaryKey().defaultRandom(),
   user_id: uuid('user_id').notNull().references(() => Users.id),
   family_id: uuid('family_id').notNull().references(() => Families.id),
-  role: text('role'),
+  family_role_id: uuid('family_role_id').references(() => FamilyRoles.id),
   created_at: timestamp('created_at', { withTimezone: true }),
   updated_at: timestamp('updated_at', { withTimezone: true }),
 });
@@ -343,11 +352,19 @@ export interface Family {
   updated_at?: Date;
 }
 
+export interface FamilyRole {
+  id: string;
+  name: string;
+  description?: string;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 export interface FamilyMember {
   id: string;
   user_id: string;
   family_id: string;
-  role?: string;
+  family_role_id?: string;
   created_at?: Date;
   updated_at?: Date;
 }

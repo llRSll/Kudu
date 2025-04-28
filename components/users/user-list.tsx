@@ -14,6 +14,7 @@ import {
   Key,
   Lock,
   MoreHorizontal,
+  Pencil,
   Shield,
   ShieldAlert,
   User,
@@ -41,6 +42,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { AddUserForm } from "./add-user-form";
 import { type User as UserType } from "@/lib/actions/users"
+import Link from "next/link";
 
 interface UserListProps {
   users: UserType[];
@@ -197,111 +199,12 @@ export function UserList({ users }: UserListProps) {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" onClick={() => setSelectedUser(user)}>
-                                  <Lock className="mr-2 h-4 w-4" />
-                                  Permissions
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="sm:max-w-[525px]">
-                                <DialogHeader>
-                                  <DialogTitle>User Details: {selectedUser?.first_name} {selectedUser?.surname}</DialogTitle>
-                                  <DialogDescription>
-                                    View and manage user details and permissions.
-                                  </DialogDescription>
-                                </DialogHeader>
-
-                                {selectedUser && (
-                                  <div className="py-4">
-                                    <div className="flex items-center mb-4 pb-4 border-b">
-                                      <Avatar className="h-10 w-10 mr-4">
-                                        {selectedUser.avatar_url ? (
-                                          <AvatarImage src={selectedUser.avatar_url} alt={`${selectedUser.first_name} ${selectedUser.surname}`} />
-                                        ) : null}
-                                        <AvatarFallback>
-                                          {(selectedUser.first_name?.[0] ?? '') + (selectedUser.surname?.[0] ?? '')}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                        <h3 className="font-medium">{selectedUser.first_name} {selectedUser.surname}</h3>
-                                        <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-                                      </div>
-                                      <Badge className="ml-auto">{selectedUser.role}</Badge>
-                                    </div>
-
-                                    <div className="grid gap-1.5">
-                                      <Label htmlFor="email">Email</Label>
-                                      <p id="email" className="text-sm">{selectedUser.email}</p>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                      <Label htmlFor="role">Role</Label>
-                                      <p id="role" className="text-sm">{selectedUser.role}</p>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                      <Label htmlFor="status">Status</Label>
-                                      <p id="status" className="text-sm capitalize">{selectedUser.status}</p>
-                                    </div>
-                                    <div className="grid gap-1.5">
-                                      <Label htmlFor="lastActive">Last Active</Label>
-                                      <p id="lastActive" className="text-sm">{formatDate(selectedUser.last_login)}</p>
-                                    </div>
-                                  </div>
-                                )}
-                              </DialogContent>
-                            </Dialog>
-
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">More options</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit User
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <UserCog className="mr-2 h-4 w-4" /> Change Role ({user.role})
-                                </DropdownMenuItem>
-                                {user.status === "pending" && (
-                                  <>
-                                    <DropdownMenuItem>
-                                      <Check className="mr-2 h-4 w-4 text-green-500" />
-                                      Approve
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <X className="mr-2 h-4 w-4 text-red-500" />
-                                      Reject
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                                {user.status === "active" && (
-                                  <DropdownMenuItem>
-                                    <X className="mr-2 h-4 w-4" />
-                                    Deactivate
-                                  </DropdownMenuItem>
-                                )}
-                                {user.status === "inactive" && (
-                                  <DropdownMenuItem>
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Reactivate
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>
-                                  <Key className="mr-2 h-4 w-4" />
-                                  Reset Password
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-500">
-                                  <X className="mr-2 h-4 w-4" />
-                                  Delete User
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Link href={`/users/${user.id}/edit`} passHref>
+                              <Button variant="outline" size="icon">
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit User</span>
+                              </Button>
+                            </Link>
                           </div>
                         </td>
                       </tr>
@@ -365,13 +268,12 @@ export function UserList({ users }: UserListProps) {
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm">
-                                <Lock className="mr-2 h-4 w-4" />
-                                Permissions
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                              <Link href={`/users/${user.id}/edit`} passHref>
+                                <Button variant="outline" size="icon">
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit User</span>
+                                </Button>
+                              </Link>
                             </div>
                           </td>
                         </tr>
@@ -429,22 +331,12 @@ export function UserList({ users }: UserListProps) {
                             </td>
                             <td className="p-3">
                               <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-green-500/10 text-green-500 hover:bg-green-500/20 hover:text-green-600"
-                                >
-                                  <Check className="mr-2 h-4 w-4" />
-                                  Approve
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-600"
-                                >
-                                  <X className="mr-2 h-4 w-4" />
-                                  Reject
-                                </Button>
+                                <Link href={`/users/${user.id}/edit`} passHref>
+                                  <Button variant="outline" size="icon">
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Edit User</span>
+                                  </Button>
+                                </Link>
                               </div>
                             </td>
                           </tr>
@@ -517,13 +409,12 @@ export function UserList({ users }: UserListProps) {
                           </td>
                           <td className="p-3">
                             <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm">
-                                <Check className="mr-2 h-4 w-4" />
-                                Reactivate
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                              <Link href={`/users/${user.id}/edit`} passHref>
+                                <Button variant="outline" size="icon">
+                                  <Pencil className="h-4 w-4" />
+                                  <span className="sr-only">Edit User</span>
+                                </Button>
+                              </Link>
                             </div>
                           </td>
                         </tr>
