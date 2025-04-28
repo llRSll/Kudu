@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -38,167 +39,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { AddUserForm } from "./add-user-form";
+import { type User as UserType } from "@/lib/actions/users"
 
-// Sample data for users
-const users = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "Admin",
-    status: "active",
-    lastActive: "2025-03-15T14:30:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "JD",
-    permissions: {
-      dashboard: "full",
-      properties: "full",
-      investments: "full",
-      credit: "full",
-      entities: "full",
-      documents: "full",
-      users: "full",
-    },
-  },
-  {
-    id: 2,
-    name: "Jane Doe",
-    email: "jane.doe@example.com",
-    role: "Admin",
-    status: "active",
-    lastActive: "2025-03-14T09:45:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "JD",
-    permissions: {
-      dashboard: "full",
-      properties: "full",
-      investments: "full",
-      credit: "full",
-      entities: "full",
-      documents: "full",
-      users: "full",
-    },
-  },
-  {
-    id: 3,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@example.com",
-    role: "Property Manager",
-    status: "active",
-    lastActive: "2025-03-12T16:20:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "SJ",
-    permissions: {
-      dashboard: "read",
-      properties: "full",
-      investments: "none",
-      credit: "none",
-      entities: "read",
-      documents: "limited",
-      users: "none",
-    },
-  },
-  {
-    id: 4,
-    name: "Michael Chen",
-    email: "michael.chen@example.com",
-    role: "Investment Advisor",
-    status: "active",
-    lastActive: "2025-03-10T11:15:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "MC",
-    permissions: {
-      dashboard: "read",
-      properties: "read",
-      investments: "full",
-      credit: "read",
-      entities: "read",
-      documents: "limited",
-      users: "none",
-    },
-  },
-  {
-    id: 5,
-    name: "Alex Rodriguez",
-    email: "alex.rodriguez@example.com",
-    role: "Financial Advisor",
-    status: "active",
-    lastActive: "2025-03-13T13:40:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "AR",
-    permissions: {
-      dashboard: "read",
-      properties: "read",
-      investments: "read",
-      credit: "full",
-      entities: "read",
-      documents: "limited",
-      users: "none",
-    },
-  },
-  {
-    id: 6,
-    name: "Emily Wilson",
-    email: "emily.wilson@example.com",
-    role: "Family Member",
-    status: "active",
-    lastActive: "2025-03-08T10:30:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "EW",
-    permissions: {
-      dashboard: "read",
-      properties: "read",
-      investments: "read",
-      credit: "read",
-      entities: "read",
-      documents: "read",
-      users: "none",
-    },
-  },
-  {
-    id: 7,
-    name: "David Smith",
-    email: "david.smith@example.com",
-    role: "Legal Advisor",
-    status: "pending",
-    lastActive: null,
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "DS",
-    permissions: {
-      dashboard: "none",
-      properties: "none",
-      investments: "none",
-      credit: "none",
-      entities: "read",
-      documents: "limited",
-      users: "none",
-    },
-  },
-  {
-    id: 8,
-    name: "Lisa Brown",
-    email: "lisa.brown@example.com",
-    role: "Tax Advisor",
-    status: "inactive",
-    lastActive: "2025-01-15T09:20:00",
-    avatar: "/placeholder.svg?height=40&width=40",
-    initials: "LB",
-    permissions: {
-      dashboard: "none",
-      properties: "none",
-      investments: "none",
-      credit: "none",
-      entities: "read",
-      documents: "limited",
-      users: "none",
-    },
-  },
-]
+interface UserListProps {
+  users: UserType[];
+}
 
-export function UserList() {
-  const [selectedUser, setSelectedUser] = useState(null)
+export function UserList({ users }: UserListProps) {
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null)
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: Date | string | null | undefined): string => {
     if (!dateString) return "Never"
 
     const date = new Date(dateString)
@@ -211,17 +63,34 @@ export function UserList() {
     })
   }
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Active</Badge>
-      case "pending":
+  const getTimeAgo = (dateString: Date | string | null | undefined): string => {
+    if (!dateString) return "Never"
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+    if (days > 0) return `${days} days ago`
+    if (hours > 0) return `${hours} hours ago`
+    if (minutes > 0) return `${minutes} minutes ago`
+    if (seconds > 0) return `${seconds} seconds ago`
+    return "Just now"
+  }
+
+  const getStatusBadge = (status: string | null | undefined) => {
+    switch (status?.toUpperCase()) {
+      case "ACTIVE":
+        return <Badge variant="default">Active</Badge>
+      case "PENDING":
         return (
           <Badge variant="outline" className="text-amber-500 border-amber-500">
             Pending
           </Badge>
         )
-      case "inactive":
+      case "INACTIVE":
         return (
           <Badge variant="outline" className="text-muted-foreground">
             Inactive
@@ -232,21 +101,21 @@ export function UserList() {
     }
   }
 
-  const getRoleIcon = (role) => {
+  const getRoleIcon = (role: string | null | undefined) => {
     switch (role) {
-      case "Admin":
+      case "ADMIN":
         return <ShieldAlert className="h-4 w-4 text-red-500" />
-      case "Property Manager":
+      case "PROPERTY MANAGER":
         return <Key className="h-4 w-4 text-blue-500" />
-      case "Investment Advisor":
+      case "INVESTMENT ADVISOR":
         return <UserCog className="h-4 w-4 text-green-500" />
-      case "Financial Advisor":
+      case "FINANCIAL ADVISOR":
         return <UserCog className="h-4 w-4 text-purple-500" />
-      case "Family Member":
+      case "FAMILY MEMBER":
         return <User className="h-4 w-4 text-orange-500" />
-      case "Legal Advisor":
+      case "LEGAL ADVISOR":
         return <Shield className="h-4 w-4 text-indigo-500" />
-      case "Tax Advisor":
+      case "TAX ADVISOR":
         return <UserCog className="h-4 w-4 text-teal-500" />
       default:
         return <User className="h-4 w-4" />
@@ -257,17 +126,30 @@ export function UserList() {
     <div className="space-y-4">
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
-          <TabsTrigger value="all">All Users</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="inactive">Inactive</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
         </TabsList>
-
         <TabsContent value="all" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage users and their access permissions</CardDescription>
+              <CardDescription>Manage user access and permissions.</CardDescription>
+              <div className="flex items-center gap-2">
+                <Input placeholder="Search users..." className="max-w-sm" />
+                <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="h-8 gap-1">
+                      <UserPlus className="h-3.5 w-3.5" />
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Add User
+                      </span>
+                    </Button>
+                  </DialogTrigger>
+                  <AddUserForm setOpen={setIsAddUserDialogOpen} />
+                </Dialog>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border">
@@ -287,12 +169,16 @@ export function UserList() {
                         <td className="p-3">
                           <div className="flex items-center">
                             <Avatar className="h-8 w-8 mr-3">
-                              <AvatarImage src={user.avatar} alt={user.name} />
-                              <AvatarFallback>{user.initials}</AvatarFallback>
+                              {user.avatar_url ? (
+                                <AvatarImage src={user.avatar_url} alt={`${user.first_name} ${user.surname}`} />
+                              ) : null}
+                              <AvatarFallback>
+                                {(user.first_name?.[0] ?? '') + (user.surname?.[0] ?? '')}
+                              </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <p className="font-medium">{user.name}</p>
-                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <div className="grid gap-1">
+                              <p className="text-sm font-medium leading-none">{user.first_name} {user.surname}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
                             </div>
                           </div>
                         </td>
@@ -304,14 +190,10 @@ export function UserList() {
                         </td>
                         <td className="p-3">{getStatusBadge(user.status)}</td>
                         <td className="p-3">
-                          {user.lastActive ? (
-                            <div className="flex items-center text-sm">
-                              <Clock className="mr-1 h-3 w-3 text-muted-foreground" />
-                              {formatDate(user.lastActive)}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-muted-foreground">Never</span>
-                          )}
+                          <div className="flex items-center text-sm">
+                            <Clock className="mr-1 h-3 w-3 text-muted-foreground" />
+                            {getTimeAgo(user.last_login)}
+                          </div>
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
@@ -324,9 +206,9 @@ export function UserList() {
                               </DialogTrigger>
                               <DialogContent className="sm:max-w-[525px]">
                                 <DialogHeader>
-                                  <DialogTitle>User Permissions</DialogTitle>
+                                  <DialogTitle>User Details: {selectedUser?.first_name} {selectedUser?.surname}</DialogTitle>
                                   <DialogDescription>
-                                    Manage access permissions for {selectedUser?.name}
+                                    View and manage user details and permissions.
                                   </DialogDescription>
                                 </DialogHeader>
 
@@ -334,57 +216,38 @@ export function UserList() {
                                   <div className="py-4">
                                     <div className="flex items-center mb-4 pb-4 border-b">
                                       <Avatar className="h-10 w-10 mr-4">
-                                        <AvatarImage src={selectedUser.avatar} alt={selectedUser.name} />
-                                        <AvatarFallback>{selectedUser.initials}</AvatarFallback>
+                                        {selectedUser.avatar_url ? (
+                                          <AvatarImage src={selectedUser.avatar_url} alt={`${selectedUser.first_name} ${selectedUser.surname}`} />
+                                        ) : null}
+                                        <AvatarFallback>
+                                          {(selectedUser.first_name?.[0] ?? '') + (selectedUser.surname?.[0] ?? '')}
+                                        </AvatarFallback>
                                       </Avatar>
                                       <div>
-                                        <h3 className="font-medium">{selectedUser.name}</h3>
+                                        <h3 className="font-medium">{selectedUser.first_name} {selectedUser.surname}</h3>
                                         <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                                       </div>
                                       <Badge className="ml-auto">{selectedUser.role}</Badge>
                                     </div>
 
-                                    <div className="space-y-4">
-                                      <div className="grid grid-cols-4 items-center gap-4 py-2 border-b">
-                                        <Label className="font-medium">Module</Label>
-                                        <Label className="text-center">No Access</Label>
-                                        <Label className="text-center">View Only</Label>
-                                        <Label className="text-center">Full Access</Label>
-                                      </div>
-
-                                      {Object.entries(selectedUser.permissions).map(([module, permission]) => (
-                                        <div key={module} className="grid grid-cols-4 items-center gap-4">
-                                          <Label className="capitalize">{module}</Label>
-                                          <div className="flex justify-center">
-                                            <input
-                                              type="radio"
-                                              name={`permission-${module}`}
-                                              defaultChecked={permission === "none"}
-                                            />
-                                          </div>
-                                          <div className="flex justify-center">
-                                            <input
-                                              type="radio"
-                                              name={`permission-${module}`}
-                                              defaultChecked={permission === "read" || permission === "limited"}
-                                            />
-                                          </div>
-                                          <div className="flex justify-center">
-                                            <input
-                                              type="radio"
-                                              name={`permission-${module}`}
-                                              defaultChecked={permission === "full"}
-                                            />
-                                          </div>
-                                        </div>
-                                      ))}
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="email">Email</Label>
+                                      <p id="email" className="text-sm">{selectedUser.email}</p>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="role">Role</Label>
+                                      <p id="role" className="text-sm">{selectedUser.role}</p>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="status">Status</Label>
+                                      <p id="status" className="text-sm capitalize">{selectedUser.status}</p>
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                      <Label htmlFor="lastActive">Last Active</Label>
+                                      <p id="lastActive" className="text-sm">{formatDate(selectedUser.last_login)}</p>
                                     </div>
                                   </div>
                                 )}
-
-                                <DialogFooter>
-                                  <Button type="submit">Save Changes</Button>
-                                </DialogFooter>
                               </DialogContent>
                             </Dialog>
 
@@ -400,6 +263,9 @@ export function UserList() {
                                 <DropdownMenuItem>
                                   <Edit className="mr-2 h-4 w-4" />
                                   Edit User
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <UserCog className="mr-2 h-4 w-4" /> Change Role ({user.role})
                                 </DropdownMenuItem>
                                 {user.status === "pending" && (
                                   <>
@@ -466,18 +332,22 @@ export function UserList() {
                   </thead>
                   <tbody>
                     {users
-                      .filter((user) => user.status === "active")
+                      .filter((user) => user.status?.toUpperCase() === "ACTIVE")
                       .map((user) => (
                         <tr key={user.id} className="border-b">
                           <td className="p-3">
                             <div className="flex items-center">
                               <Avatar className="h-8 w-8 mr-3">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback>{user.initials}</AvatarFallback>
+                                {user.avatar_url ? (
+                                  <AvatarImage src={user.avatar_url} alt={`${user.first_name} ${user.surname}`} />
+                                ) : null}
+                                <AvatarFallback>
+                                  {(user.first_name?.[0] ?? '') + (user.surname?.[0] ?? '')}
+                                </AvatarFallback>
                               </Avatar>
-                              <div>
-                                <p className="font-medium">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                              <div className="grid gap-1">
+                                <p className="text-sm font-medium leading-none">{user.first_name} {user.surname}</p>
+                                <p className="text-xs text-muted-foreground">{user.email}</p>
                               </div>
                             </div>
                           </td>
@@ -490,7 +360,7 @@ export function UserList() {
                           <td className="p-3">
                             <div className="flex items-center text-sm">
                               <Clock className="mr-1 h-3 w-3 text-muted-foreground" />
-                              {formatDate(user.lastActive)}
+                              {getTimeAgo(user.last_login)}
                             </div>
                           </td>
                           <td className="p-3">
@@ -520,7 +390,7 @@ export function UserList() {
               <CardDescription>Users awaiting approval</CardDescription>
             </CardHeader>
             <CardContent>
-              {users.filter((user) => user.status === "pending").length > 0 ? (
+              {users.filter((user) => user.status?.toUpperCase() === "PENDING").length > 0 ? (
                 <div className="rounded-md border">
                   <table className="w-full">
                     <thead>
@@ -532,18 +402,22 @@ export function UserList() {
                     </thead>
                     <tbody>
                       {users
-                        .filter((user) => user.status === "pending")
+                        .filter((user) => user.status?.toUpperCase() === "PENDING")
                         .map((user) => (
                           <tr key={user.id} className="border-b">
                             <td className="p-3">
                               <div className="flex items-center">
                                 <Avatar className="h-8 w-8 mr-3">
-                                  <AvatarImage src={user.avatar} alt={user.name} />
-                                  <AvatarFallback>{user.initials}</AvatarFallback>
+                                  {user.avatar_url ? (
+                                    <AvatarImage src={user.avatar_url} alt={`${user.first_name} ${user.surname}`} />
+                                  ) : null}
+                                  <AvatarFallback>
+                                    {(user.first_name?.[0] ?? '') + (user.surname?.[0] ?? '')}
+                                  </AvatarFallback>
                                 </Avatar>
-                                <div>
-                                  <p className="font-medium">{user.name}</p>
-                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                                <div className="grid gap-1">
+                                  <p className="text-sm font-medium leading-none">{user.first_name} {user.surname}</p>
+                                  <p className="text-xs text-muted-foreground">{user.email}</p>
                                 </div>
                               </div>
                             </td>
@@ -610,18 +484,22 @@ export function UserList() {
                   </thead>
                   <tbody>
                     {users
-                      .filter((user) => user.status === "inactive")
+                      .filter((user) => user.status?.toUpperCase() === "INACTIVE")
                       .map((user) => (
                         <tr key={user.id} className="border-b">
                           <td className="p-3">
                             <div className="flex items-center">
                               <Avatar className="h-8 w-8 mr-3">
-                                <AvatarImage src={user.avatar} alt={user.name} />
-                                <AvatarFallback>{user.initials}</AvatarFallback>
+                                {user.avatar_url ? (
+                                  <AvatarImage src={user.avatar_url} alt={`${user.first_name} ${user.surname}`} />
+                                ) : null}
+                                <AvatarFallback>
+                                  {(user.first_name?.[0] ?? '') + (user.surname?.[0] ?? '')}
+                                </AvatarFallback>
                               </Avatar>
-                              <div>
-                                <p className="font-medium">{user.name}</p>
-                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                              <div className="grid gap-1">
+                                <p className="text-sm font-medium leading-none">{user.first_name} {user.surname}</p>
+                                <p className="text-xs text-muted-foreground">{user.email}</p>
                               </div>
                             </div>
                           </td>
@@ -634,7 +512,7 @@ export function UserList() {
                           <td className="p-3">
                             <div className="flex items-center text-sm">
                               <Clock className="mr-1 h-3 w-3 text-muted-foreground" />
-                              {formatDate(user.lastActive)}
+                              {getTimeAgo(user.last_login)}
                             </div>
                           </td>
                           <td className="p-3">
@@ -657,7 +535,53 @@ export function UserList() {
           </Card>
         </TabsContent>
       </Tabs>
+      {selectedUser && (
+        <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>User Details: {selectedUser?.first_name} {selectedUser?.surname}</DialogTitle>
+              <DialogDescription>
+                View and manage user details and permissions.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4">
+              <div className="flex items-center mb-4 pb-4 border-b">
+                <Avatar className="h-10 w-10 mr-4">
+                  {selectedUser.avatar_url ? (
+                    <AvatarImage src={selectedUser.avatar_url} alt={`${selectedUser.first_name} ${selectedUser.surname}`} />
+                  ) : null}
+                  <AvatarFallback>
+                    {(selectedUser.first_name?.[0] ?? '') + (selectedUser.surname?.[0] ?? '')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-medium">{selectedUser.first_name} {selectedUser.surname}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                </div>
+                <Badge className="ml-auto">{selectedUser.role}</Badge>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="email">Email</Label>
+                <p id="email" className="text-sm">{selectedUser.email}</p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="role">Role</Label>
+                <p id="role" className="text-sm">{selectedUser.role}</p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="status">Status</Label>
+                <p id="status" className="text-sm capitalize">{selectedUser.status}</p>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="lastActive">Last Active</Label>
+                <p id="lastActive" className="text-sm">{formatDate(selectedUser.last_login)}</p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
-
