@@ -60,7 +60,15 @@ const statuses = ["ACTIVE", "PENDING", "INACTIVE"];
 export default function EditUserForm({ user, allRoles, currentUserRoleIds }: EditUserFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Add debug logging
+  console.log('Debug - User:', user);
+  console.log('Debug - All Roles:', allRoles);
+  console.log('Debug - Current User Role IDs:', currentUserRoleIds);
 
+  // Debug form initialization
+  console.log('Debug - Initializing form with default values');
+  
   // Initialize react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,6 +87,7 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
   });
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
+    console.log('Debug - Form submitted with data:', data);
     setIsLoading(true);
     
     try {
@@ -210,14 +219,17 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
               <FormLabel>Legacy Role</FormLabel>
               <FormControl>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={(value) => {
+                    console.log('Debug - Role changed to:', value);
+                    field.onChange(value);
+                  }}
                   defaultValue={field.value}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {roles.map((role) => (
                       <SelectItem key={role} value={role}>
                         {role}
