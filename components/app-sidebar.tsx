@@ -12,7 +12,7 @@ import {
   Users,
   Bell,
   ChevronDown,
-  User,
+  User as UserIcon,
   FileText,
   FileBarChart,
   Activity,
@@ -47,7 +47,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { UserProfile } from "@/components/user-profile"
 import { useAuth } from "@/lib/auth-context"
 
 // Helper function for initials (can be moved to a utils file later)
@@ -129,6 +128,9 @@ export function AppSidebar() {
     },
   ]
 
+  const iconContainerStyles = "w-20 flex-shrink-0 flex justify-center items-center";
+  const textStyles = "ml-3 text-sm whitespace-nowrap overflow-hidden"; // Standardized text style
+
   return (
     <Sidebar
       onMouseEnter={() => setIsHovered(true)}
@@ -152,23 +154,7 @@ export function AppSidebar() {
           </Link>
           {isMobile && <SidebarTrigger />}
         </div>
-        <div className="flex items-center gap-2 py-2">
-          {isHovered && <UserProfile />}
-          {!isHovered && (
-            <div className="w-full flex justify-center">
-              <Avatar className="h-7 w-7">
-                {/* Display user initials or a placeholder if loading/no user */}
-                {!hasMounted || authLoading ? (
-                  <AvatarFallback className="text-xs">...</AvatarFallback> // Placeholder during auth loading or before mount
-                ) : user ? (
-                  <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
-                ) : (
-                  <AvatarFallback className="text-xs">??</AvatarFallback> // Placeholder if no user after loading and mounted
-                )}
-              </Avatar>
-            </div>
-          )}
-        </div>
+        {/* Removed UserProfile and Avatar display logic from here */}
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
@@ -199,11 +185,19 @@ export function AppSidebar() {
         <SidebarMenu>
           {/* Theme Toggle */}
           <SidebarMenuItem className="p-0">
-            <div className={`flex items-center w-full py-2 ${isHovered ? 'px-[calc((theme(spacing.20)-theme(spacing.8))/2)] justify-start' : 'justify-center'}`}>
-              <div className={`${isHovered ? '' : 'w-20'} flex-shrink-0 flex ${isHovered ? 'justify-start' : 'justify-center'} items-center`}>
-                <ThemeToggle />
-              </div>
-              {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Theme</span>}
+            <div 
+              className={`flex items-center h-10 ${isHovered ? "w-full justify-start" : "w-20 justify-center"} hover:bg-muted/50 transition-colors duration-200 ease-in-out group cursor-pointer`}
+              onClick={() => {
+                // This is a bit tricky. ThemeToggle is likely a button inside a dropdown.
+                // We might need to click its internal button. For now, this div provides the hover area.
+                // Or, ThemeToggle itself should be structured to fit this model.
+                // Assuming ThemeToggle is self-contained and clicking it directly works.
+                const themeToggleButton = document.querySelector('[aria-label="Toggle theme"]'); // A bit hacky, depends on ThemeToggle impl.
+                if (themeToggleButton instanceof HTMLElement) themeToggleButton.click();
+              }}
+            >
+              <div className={iconContainerStyles}><ThemeToggle /></div>
+              {isHovered && <span className={textStyles}>Theme</span>}
             </div>
           </SidebarMenuItem>
 
@@ -213,15 +207,15 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className={`w-full flex items-center h-auto py-2 ${isHovered ? 'px-[calc((theme(spacing.20)-theme(spacing.8))/2)] justify-start' : 'justify-center'}`}
+                  className={`flex items-center h-10 ${isHovered ? "w-full justify-start" : "w-20 justify-center"} hover:bg-muted/50 transition-colors duration-200 ease-in-out group px-0`}
                   aria-label="Notifications"
                 >
-                  <div className={`${isHovered ? '' : 'w-20'} flex-shrink-0 flex ${isHovered ? 'justify-start' : 'justify-center'} items-center relative`}>
+                  <div className={`${iconContainerStyles} relative`}> {/* Added relative for badge positioning */}
                     <Bell className="h-4 w-4" />
-                    <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary" style={{ display: isHovered ? 'none' : 'block' }}></span> {/* Indicator only when collapsed */}
-                    <span className="absolute top-1 right-1 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary" style={{ display: !isHovered ? 'none' : 'block' }}></span> {/* Indicator adjusted for expanded */}
+                    {/* Notification Badges - adjust positioning if needed with new structure */}
+                    <span className="absolute top-1.5 right-6 transform h-1.5 w-1.5 rounded-full bg-primary"></span>
                   </div>
-                  {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Notifications</span>}
+                  {isHovered && <span className={textStyles}>Notifications</span>}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" side={isMobile ? "bottom" : "top"} className="w-72 dropdown-menu-content">
@@ -233,7 +227,7 @@ export function AppSidebar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <div className="max-h-72 overflow-auto">
-                  {[
+                  {[ 
                     {
                       title: "Property Update",
                       description: "New document uploaded for 123 Main St.",
@@ -275,39 +269,6 @@ export function AppSidebar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="justify-center text-primary text-xs font-medium">
                   View all notifications
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-          <SidebarSeparator />
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  className={`w-full`}
-                >
-                  <div className="flex items-center w-full">
-                    <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
-                      <User className="h-4 w-4" />
-                    </div>
-                    {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Account</span>}
-                    {isHovered && <ChevronDown className="ml-auto h-3.5 w-3.5" />} 
-                  </div>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="start" className="w-52 dropdown-menu-content">
-                <DropdownMenuItem className="text-xs text-foreground">
-                  <User className="mr-2 h-3.5 w-3.5" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-xs text-foreground">
-                  <Settings className="mr-2 h-3.5 w-3.5" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive text-xs">
-                  <LogOut className="mr-2 h-3.5 w-3.5" />
-                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
