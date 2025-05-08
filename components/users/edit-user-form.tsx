@@ -35,7 +35,6 @@ const formSchema = z.object({
   phone_number: z.string().optional().nullable(),
   dob: z.string().optional().nullable(), // Using string for input type=date, can refine later
   tax_file_number: z.string().optional().nullable(), // Add specific TFN validation if needed
-  role: z.string().optional(), // Now optional since we're using UserRoles
   status: z.string(), // Add specific status validation if needed
   roleIds: z.array(z.string()), // Array of role IDs selected via checkboxes
   // Add other fields from schema.ts here for validation
@@ -54,7 +53,6 @@ interface EditUserFormProps {
 }
 
 // TODO: Fetch roles dynamically if needed
-const roles = ["ADMIN", "PROPERTY_MANAGER", "INVESTMENT_ADVISOR", "FINANCIAL_ADVISOR", "FAMILY_MEMBER", "LEGAL_ADVISOR", "TAX_ADVISOR", "USER", "VIEWER", "EDITOR"];
 const statuses = ["ACTIVE", "PENDING", "INACTIVE"];
 
 export default function EditUserForm({ user, allRoles, currentUserRoleIds }: EditUserFormProps) {
@@ -80,7 +78,6 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
       phone_number: user.phone_number || "",
       dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : "",
       tax_file_number: user.tax_file_number || "",
-      role: user.role || "",
       status: user.status || "ACTIVE",
       roleIds: currentUserRoleIds || [],
     },
@@ -206,40 +203,6 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
               </FormControl>
               <FormDescription>
                 Handle TFN securely. This is sensitive information.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Legacy Role</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={(value) => {
-                    console.log('Debug - Role changed to:', value);
-                    field.onChange(value);
-                  }}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {roles.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {role}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormDescription>
-                This field will be deprecated in favor of the multi-role selection below.
               </FormDescription>
               <FormMessage />
             </FormItem>

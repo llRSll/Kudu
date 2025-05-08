@@ -251,7 +251,11 @@ export async function addUserToFamily(
   try {
     // Check if user is already in this family
     const existingMembership = await db
-      .select()
+      .select({
+        id: FamilyMembers.id,
+        user_id: FamilyMembers.user_id, // Keep original column name for consistency with table
+        family_id: FamilyMembers.family_id // Keep original column name
+      })
       .from(FamilyMembers)
       .where(
         and(

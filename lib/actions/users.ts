@@ -1,10 +1,9 @@
 "use server"
 
 import { db } from "../drizzle/client";
-import { Users, Roles, UserRoles } from "../drizzle/schema";
-import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
+import { Users, Roles, UserRoles, FamilyMembers } from "../drizzle/schema";
+import { InferSelectModel, InferInsertModel, eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
 
 // Define the type based on the Drizzle schema
 export type User = InferSelectModel<typeof Users>;
@@ -232,5 +231,52 @@ export async function createUser(formData: FormData): Promise<string> {
     } else {
       throw new Error("Failed to create user. Please try again.");
     }
+  }
+}
+
+// New function to delete a user
+export async function deleteUser(userId: string): Promise<{ success: boolean; message?: string }> {
+  if (!userId) {
+    return { success: false, message: "User ID is required for deletion." };
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      // 1. Delete from UserRoles
+      console.log(`Deleting user roles for user ID: ${userId}`);
+      await tx.delete(UserRoles).where(eq(UserRoles.user_id, userId));
+
+      // 2. Delete from FamilyMembers
+      console.log(`Deleting family memberships for user ID: ${userId}`);
+      await tx.delete(FamilyMembers).where(eq(FamilyMembers.user_id, userId));
+      
+      // Add deletions from other related tables here if necessary
+      // Example:
+      // await tx.delete(UserActivity).where(eq(UserActivity.user_id, userId));
+      // await tx.delete(UserPreferences).where(eq(UserPreferences.user_id, userId));
+
+      // 3. Delete the user from the Users table
+      console.log(`Deleting user from Users table with ID: ${userId}`);
+      const deleteResult = await tx.delete(Users).where(eq(Users.id, userId)).returning({ id: Users.id });
+
+      if (deleteResult.length === 0) {
+        throw new Error("User not found or already deleted.");
+      }
+    });
+
+    // Revalidate paths to reflect the deletion
+    revalidatePath('/users');
+    revalidatePath('/'); // Revalidate home if users are listed there or count is shown
+
+    console.log(`User ${userId} deleted successfully.`);
+    return { success: true };
+
+  } catch (error) {
+    console.error(`Error deleting user with ID ${userId}:`, error);
+    let message = "Failed to delete user.";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return { success: false, message };
   }
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import UserFamiliesSection from '@/components/users/user-families-section';
+import UserDeletionSection from '@/components/users/user-deletion-section';
 import { Metadata } from 'next';
 
 interface EditUserPageProps {
@@ -107,10 +108,34 @@ export default async function EditUserPage({ params, searchParams }: EditUserPag
             <p className="text-muted-foreground">Permissions management will be implemented in a future update.</p>
           </CardContent>
         </Card>
+
+        <Card className="max-w-4xl mx-auto border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Proceed with caution. Actions in this section are destructive and may not be reversible.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="text-lg font-medium">Delete This User</h3>
+              <p className="text-sm text-muted-foreground">
+                Once you delete a user, there is no going back. Please be certain.
+              </p>
+            </div>
+            <UserDeletionSection 
+              userId={userId} 
+              userName={`${user.first_name} ${user.surname}`} 
+            />
+          </CardContent>
+        </Card>
+
       </div>
     );
   } catch (error) {
-    console.error("Error in EditUserPage:", error);
-    throw error; // Let Next.js error boundary handle it
+    if (error instanceof Error && error.message.includes("not found")) {
+      notFound();
+    }
+    throw error; 
   }
 }

@@ -52,6 +52,7 @@ import { UserProfile } from "@/components/user-profile"
 export function AppSidebar() {
   const pathname = usePathname()
   const { isMobile } = useSidebar()
+  const [isHovered, setIsHovered] = useState(false)
 
   const menuItems = [
     {
@@ -112,30 +113,98 @@ export function AppSidebar() {
   ]
 
   return (
-    <Sidebar variant="floating" collapsible="none" className="border-r bg-background">
+    <Sidebar
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      variant="floating"
+      collapsible="none"
+      className={`border-r bg-background transition-all duration-300 ease-in-out ${isHovered ? 'w-64' : 'w-20'}`}
+    >
       <SidebarHeader className="flex flex-col gap-0 px-3 py-2">
         <div className="flex items-center justify-between py-2">
-          <Link href="/dashboard" className="flex items-center gap-2 font-medium text-lg">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-              <Home className="h-4 w-4" />
+          <Link
+            href="/dashboard"
+            className={`flex items-center font-medium text-lg w-full`}
+          >
+            <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+                <Home className="h-4 w-4" />
+              </div>
             </div>
-            <span className="font-medium tracking-tight">KUDU</span>
+            {isHovered && <span className="font-medium tracking-tight ml-2 whitespace-nowrap overflow-hidden">KUDU</span>}
           </Link>
           {isMobile && <SidebarTrigger />}
         </div>
         <div className="flex items-center gap-2 py-2">
-          <UserProfile />
-          <div className="flex items-center gap-2 ml-auto">
-            <ThemeToggle />
+          {isHovered && <UserProfile />}
+          {!isHovered && (
+            <div className="w-full flex justify-center">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="text-xs">UA</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </div>
+      </SidebarHeader>
+      <SidebarSeparator />
+      <SidebarContent>
+        <SidebarMenu>
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.title}
+                  className={`w-full ${isActive ? "bg-primary/10 text-primary font-medium" : ""}`}
+                >
+                  <Link href={item.href} className="flex items-center w-full">
+                    <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">{item.title}</span>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Toggle theme"
+              className={`w-full`}
+            >
+              <div className="flex items-center w-full">
+                <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
+                  <ThemeToggle />
+                </div>
+                {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Theme</span>}
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 relative">
-                  <Bell className="h-3.5 w-3.5" />
-                  <span className="sr-only">Notifications</span>
-                  <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-primary"></span>
-                </Button>
+                <SidebarMenuButton
+                  tooltip="Notifications"
+                  className={`w-full`}
+                >
+                  <div className="flex items-center w-full relative"> 
+                    <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
+                      <div className="relative"> 
+                        <Bell className="h-3.5 w-3.5" />
+                        <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary"></span>
+                      </div>
+                    </div>
+                    {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Notifications</span>}
+                  </div>
+                </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 dropdown-menu-content">
+              <DropdownMenuContent align="end" side="top" className="w-72 dropdown-menu-content">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span className="text-xs text-foreground">Notifications</span>
                   <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 font-normal badge-text-fix">
@@ -189,41 +258,21 @@ export function AppSidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </div>
-      </SidebarHeader>
-      <SidebarSeparator />
-      <SidebarContent>
-        <SidebarMenu>
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  tooltip={item.title}
-                  className={isActive ? "bg-primary/10 text-primary font-medium" : ""}
-                >
-                  <Link href={item.href}>
-                    <item.icon className="h-4 w-4" />
-                    <span className="text-sm">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          })}
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
+          </SidebarMenuItem>
+          <SidebarSeparator />
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">Account</span>
-                  <ChevronDown className="ml-auto h-3.5 w-3.5" />
+                <SidebarMenuButton
+                  className={`w-full`}
+                >
+                  <div className="flex items-center w-full">
+                    <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
+                      <User className="h-4 w-4" />
+                    </div>
+                    {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Account</span>}
+                    {isHovered && <ChevronDown className="ml-auto h-3.5 w-3.5" />} 
+                  </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-52 dropdown-menu-content">
@@ -248,4 +297,3 @@ export function AppSidebar() {
     </Sidebar>
   )
 }
-
