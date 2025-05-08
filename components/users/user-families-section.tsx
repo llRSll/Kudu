@@ -23,38 +23,32 @@ import {
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Trash2, Edit, User, Users, Home } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { addUserToFamily, removeUserFromFamily, updateFamilyMemberRole } from '@/lib/actions/families';
+
+interface FamilyRole {
+  id: string;
+  name: string;
+  description?: string | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+}
+
+interface Family {
+  id: string;
+  name?: string | null;
+  created_at?: Date | null;
+  updated_at?: Date | null;
+}
+
+interface UserFamily {
+  family: Family;
+  familyRole?: FamilyRole | undefined;
+}
 
 interface UserFamiliesSectionProps {
   userId: string;
-  userFamilies: {
-    family: {
-      id: string;
-      name?: string | null;
-      created_at?: Date | null;
-      updated_at?: Date | null;
-    };
-    familyRole?: {
-      id: string;
-      name: string;
-      description?: string | null;
-      created_at?: Date | null;
-      updated_at?: Date | null;
-    } | undefined;
-  }[];
-  allFamilies: {
-    id: string;
-    name?: string | null;
-    created_at?: Date | null;
-    updated_at?: Date | null;
-  }[];
-  familyRoles: {
-    id: string;
-    name: string;
-    description?: string | null;
-    created_at?: Date | null;
-    updated_at?: Date | null;
-  }[];
+  userFamilies: UserFamily[];
+  allFamilies: Family[];
+  familyRoles: FamilyRole[];
 }
 
 export default function UserFamiliesSection({
@@ -82,8 +76,8 @@ export default function UserFamiliesSection({
   const handleAddToFamily = async () => {
     if (!selectedFamily) {
       toast({
-        title: "Selection Required",
-        description: "Please select a family to add the user to.",
+        title: "Error",
+        description: "Please select a family.",
         variant: "destructive",
       });
       return;
@@ -91,7 +85,26 @@ export default function UserFamiliesSection({
 
     setIsLoading(true);
     try {
-      await addUserToFamily(userId, selectedFamily, selectedFamilyRole || undefined);
+      // Replace empty or "none" value with null for the role ID
+      const roleId = selectedFamilyRole === 'none' ? null : selectedFamilyRole || null;
+      
+      // Call the addUserToFamily server action via fetch
+      const response = await fetch('/api/users/families', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          familyId: selectedFamily,
+          familyRoleId: roleId
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to add user to family");
+      }
       
       toast({
         title: "Success",
@@ -121,11 +134,26 @@ export default function UserFamiliesSection({
 
     setIsLoading(true);
     try {
-      await updateFamilyMemberRole(
-        userId, 
-        familyToUpdate.familyId, 
-        selectedFamilyRole
-      );
+      // Replace empty or "none" value with null for the role ID
+      const roleId = selectedFamilyRole === 'none' ? null : selectedFamilyRole || null;
+      
+      // Call the updateFamilyMemberRole server action via fetch
+      const response = await fetch('/api/users/families/role', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          familyId: familyToUpdate.familyId,
+          familyRoleId: roleId
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update family role");
+      }
       
       toast({
         title: "Success",
@@ -156,7 +184,15 @@ export default function UserFamiliesSection({
     }
 
     try {
-      await removeUserFromFamily(userId, familyId);
+      // Call the removeUserFromFamily server action via fetch
+      const response = await fetch(`/api/users/families?userId=${userId}&familyId=${familyId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to remove user from family");
+      }
       
       toast({
         title: "Success",
@@ -172,6 +208,16 @@ export default function UserFamiliesSection({
         variant: "destructive",
       });
     }
+  };
+
+  const openUpdateDialog = (family: UserFamily) => {
+    setFamilyToUpdate({
+      familyId: family.family.id,
+      familyName: family.family.name || 'Unknown Family',
+      familyRoleId: family.familyRole?.id,
+    });
+    setSelectedFamilyRole(family.familyRole?.id || 'none');
+    setIsUpdateDialogOpen(true);
   };
 
   return (
@@ -207,15 +253,7 @@ export default function UserFamiliesSection({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => {
-                        setFamilyToUpdate({
-                          familyId: userFamily.family.id,
-                          familyName: userFamily.family.name || 'Unknown Family',
-                          familyRoleId: userFamily.familyRole?.id,
-                        });
-                        setSelectedFamilyRole(userFamily.familyRole?.id || '');
-                        setIsUpdateDialogOpen(true);
-                      }}
+                      onClick={() => openUpdateDialog(userFamily)}
                     >
                       <Edit className="h-4 w-4" />
                       <span className="sr-only">Edit Role</span>
@@ -286,7 +324,7 @@ export default function UserFamiliesSection({
                   <SelectValue placeholder="Select a role (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No specific role</SelectItem>
+                  <SelectItem value="none">No specific role</SelectItem>
                   {familyRoles.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.name}{role.description ? ` - ${role.description}` : ''}
@@ -327,7 +365,7 @@ export default function UserFamiliesSection({
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No specific role</SelectItem>
+                  <SelectItem value="none">No specific role</SelectItem>
                   {familyRoles.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.name}{role.description ? ` - ${role.description}` : ''}

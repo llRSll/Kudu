@@ -29,6 +29,7 @@ export const Families = pgTable('families', {
 });
 
 // 2.1) FAMILY_ROLES
+// This table defines roles within a family context.
 export const FamilyRoles = pgTable('family_roles', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull().unique(), 
