@@ -45,14 +45,31 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { UserProfile } from "@/components/user-profile"
+import { useAuth } from "@/lib/auth-context"
+
+// Helper function for initials (can be moved to a utils file later)
+const getInitials = (name: string) => {
+  if (!name) return ""
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+}
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { isMobile } = useSidebar()
   const [isHovered, setIsHovered] = useState(false)
+  const { user, loading: authLoading } = useAuth()
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const menuItems = [
     {
@@ -140,7 +157,14 @@ export function AppSidebar() {
           {!isHovered && (
             <div className="w-full flex justify-center">
               <Avatar className="h-7 w-7">
-                <AvatarFallback className="text-xs">UA</AvatarFallback>
+                {/* Display user initials or a placeholder if loading/no user */}
+                {!hasMounted || authLoading ? (
+                  <AvatarFallback className="text-xs">...</AvatarFallback> // Placeholder during auth loading or before mount
+                ) : user ? (
+                  <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                ) : (
+                  <AvatarFallback className="text-xs">??</AvatarFallback> // Placeholder if no user after loading and mounted
+                )}
               </Avatar>
             </div>
           )}
@@ -173,38 +197,34 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Toggle theme"
-              className={`w-full`}
-            >
-              <div className="flex items-center w-full">
-                <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
-                  <ThemeToggle />
-                </div>
-                {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Theme</span>}
+          {/* Theme Toggle */}
+          <SidebarMenuItem className="p-0">
+            <div className={`flex items-center w-full py-2 ${isHovered ? 'px-[calc((theme(spacing.20)-theme(spacing.8))/2)] justify-start' : 'justify-center'}`}>
+              <div className={`${isHovered ? '' : 'w-20'} flex-shrink-0 flex ${isHovered ? 'justify-start' : 'justify-center'} items-center`}>
+                <ThemeToggle />
               </div>
-            </SidebarMenuButton>
+              {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Theme</span>}
+            </div>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+
+          {/* Notifications Dropdown */}
+          <SidebarMenuItem className="p-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  tooltip="Notifications"
-                  className={`w-full`}
+                <Button
+                  variant="ghost"
+                  className={`w-full flex items-center h-auto py-2 ${isHovered ? 'px-[calc((theme(spacing.20)-theme(spacing.8))/2)] justify-start' : 'justify-center'}`}
+                  aria-label="Notifications"
                 >
-                  <div className="flex items-center w-full relative"> 
-                    <div className="w-20 flex-shrink-0 flex justify-center items-center"> 
-                      <div className="relative"> 
-                        <Bell className="h-3.5 w-3.5" />
-                        <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary"></span>
-                      </div>
-                    </div>
-                    {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Notifications</span>}
+                  <div className={`${isHovered ? '' : 'w-20'} flex-shrink-0 flex ${isHovered ? 'justify-start' : 'justify-center'} items-center relative`}>
+                    <Bell className="h-4 w-4" />
+                    <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary" style={{ display: isHovered ? 'none' : 'block' }}></span> {/* Indicator only when collapsed */}
+                    <span className="absolute top-1 right-1 transform translate-x-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-primary" style={{ display: !isHovered ? 'none' : 'block' }}></span> {/* Indicator adjusted for expanded */}
                   </div>
-                </SidebarMenuButton>
+                  {isHovered && <span className="text-sm ml-2 whitespace-nowrap overflow-hidden">Notifications</span>}
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-72 dropdown-menu-content">
+              <DropdownMenuContent align="end" side={isMobile ? "bottom" : "top"} className="w-72 dropdown-menu-content">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span className="text-xs text-foreground">Notifications</span>
                   <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0 font-normal badge-text-fix">
