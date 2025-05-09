@@ -3,6 +3,7 @@ import { Plus, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { UserList } from "@/components/users/user-list"
 import { getUsers } from "@/lib/actions/users";
+import { CreateUserForm } from "@/components/users/create-user-form";
 
 export default async function UsersPage() {
   // Fetch users on the server
@@ -15,6 +16,9 @@ export default async function UsersPage() {
           <h1 className="text-2xl font-medium tracking-tight text-foreground">Users</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage user access and permissions</p>
         </div>
+        {/* <div className="animate-fade-in" style={{ animationDelay: "0.05s" }}>
+          <CreateUserForm />
+        </div> */}
       </div>
 
       <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>

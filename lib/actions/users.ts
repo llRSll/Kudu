@@ -71,49 +71,131 @@ export async function getUserRoles(userId: string): Promise<string[]> {
 }
 
 // Action to update an existing user
-export async function updateUser(
-  userId: string, 
-  updatedData: Partial<NewUser> & { roleIds?: string[] }
-): Promise<void> {
-  if (!userId) {
-    throw new Error("User ID is required for update.");
+export async function updateUser(userId: string, payload: Partial<typeof Users.$inferInsert> & { roleIds?: string[] }) {
+  console.log(`[updateUser] Attempting to update user with ID: ${userId}`);
+  console.log('[updateUser] Received payload:', payload);
+
+  const dataToUpdate: Partial<typeof Users.$inferInsert> = {};
+
+  // Directly use properties from the payload object
+  if (payload.email) dataToUpdate.email = payload.email;
+  if (payload.first_name) dataToUpdate.first_name = payload.first_name;
+  dataToUpdate.middle_initial = payload.middle_initial; // Allow setting to null
+  if (payload.surname) dataToUpdate.surname = payload.surname;
+  dataToUpdate.phone_number = payload.phone_number;
+
+  // Handle date of birth (dob)
+  if (payload.dob === '') {
+    dataToUpdate.dob = null; // Convert empty string to null for the database
+  } else if (payload.dob) {
+    dataToUpdate.dob = payload.dob; // Assign if it's a non-empty string (assume valid date format for now)
+  }
+  // If payload.dob is null or undefined, it won't be added to dataToUpdate, so it won't be changed
+
+  dataToUpdate.tax_file_number = payload.tax_file_number;
+  dataToUpdate.avatar_url = payload.avatar_url;
+  if (payload.status) dataToUpdate.status = payload.status;
+  // Do not directly set dataToUpdate.role from payload.role here, as it will be derived from roleIds
+  // if (payload.role) dataToUpdate.role = payload.role;
+
+  let fullNameParts = [];
+  if (payload.first_name) fullNameParts.push(payload.first_name.trim());
+  if (payload.middle_initial && payload.middle_initial.trim()) {
+    fullNameParts.push(payload.middle_initial.trim());
+  }
+  if (payload.surname) fullNameParts.push(payload.surname.trim());
+  
+  if (fullNameParts.length > 0) {
+    dataToUpdate.full_name = fullNameParts.join(' ');
   }
 
+  dataToUpdate.updated_at = new Date();
+
+  const userRolesFromPayload = payload.roleIds || []; // Get roleIds from the payload
+  console.log('[updateUser] User roles from payload:', userRolesFromPayload);
+
+  // If roleIds are provided, try to set the primary Users.role field
+  if (userRolesFromPayload.length > 0) {
+    const firstRoleId = userRolesFromPayload[0];
+    try {
+      const roleInfo = await db.select({ name: Roles.name }).from(Roles).where(eq(Roles.id, firstRoleId)).limit(1);
+      if (roleInfo.length > 0 && roleInfo[0].name) {
+        dataToUpdate.role = roleInfo[0].name; // Set the main role text field
+        console.log(`[updateUser] Set Users.role to '${dataToUpdate.role}' based on first roleId.`);
+      } else {
+        console.warn(`[updateUser] Could not find role name for roleId: ${firstRoleId}`);
+      }
+    } catch (roleError) {
+      console.error(`[updateUser] Error fetching role name for roleId ${firstRoleId}:`, roleError);
+      // Decide if you want to halt or continue without setting Users.role
+    }
+  }
+
+  console.log('[updateUser] Data to be updated in DB:', dataToUpdate);
+
   try {
-    // Extract roleIds from the updatedData
-    const { roleIds, ...userData } = updatedData;
-
-    // Prepare data for update, ensuring updated_at is set
-    const dataToUpdate = {
-      ...userData,
-      updated_at: new Date(),
-    };
-
-    // Remove fields that should not be updated directly if necessary (e.g., id, created_at)
-    // delete dataToUpdate.id; 
-    // delete dataToUpdate.created_at;
-
-    // Update user data in a transaction to ensure consistency
     await db.transaction(async (tx) => {
       // Update the user's basic information
-      await tx.update(Users)
-        .set(dataToUpdate)
-        .where(eq(Users.id, userId));
-      
-      // If roleIds are provided, update the user's roles
-      if (roleIds) {
-        await updateUserRoles(userId, roleIds, tx);
+      console.log('[updateUser] Starting transaction to update Users table.');
+      if (Object.keys(dataToUpdate).length > 0) { // Only update if there's something to update
+        await tx.update(Users)
+          .set(dataToUpdate)
+          .where(eq(Users.id, userId));
+        console.log('[updateUser] Users table updated.');
+      } else {
+        console.log('[updateUser] No basic user info fields to update in Users table.');
+      }
+
+      // Handle UserRoles: Delete existing and insert new ones
+      console.log(`[updateUser] Deleting existing roles for user: ${userId}`);
+      await tx.delete(UserRoles).where(eq(UserRoles.user_id, userId));
+      console.log('[updateUser] Existing roles deleted.');
+
+      if (userRolesFromPayload && userRolesFromPayload.length > 0) {
+        const rolesToInsert = userRolesFromPayload.map(roleId => ({
+          user_id: userId,
+          role_id: roleId, // Assuming roleId is the UUID of the role from the Roles table
+          assigned_at: new Date(),
+        }));
+        console.log('[updateUser] Inserting new roles:', rolesToInsert);
+        await tx.insert(UserRoles).values(rolesToInsert);
+        console.log('[updateUser] New roles inserted.');
       }
     });
 
-    // Revalidate the user list and the specific user edit page
+    console.log(`[updateUser] User ${userId} and their roles updated successfully.`);
     revalidatePath('/users');
     revalidatePath(`/users/${userId}/edit`);
+    return { success: true, message: 'User updated successfully' };
 
   } catch (error) {
-    console.error(`Error updating user with ID ${userId}:`, error);
-    // Add specific error checks if needed (e.g., unique constraint on email if it's changeable)
-    throw new Error("Failed to update user data.");
+    console.error(`[updateUser] Error updating user with ID ${userId}:`, error);
+    let errorMessage = "Failed to update user data.";
+    if (error instanceof Error) {
+      // Check for PostgreSQL specific error codes if available from the error object
+      if ((error as any).code === '22007') { // 'invalid_datetime_format' - specifically for date issues
+        errorMessage = "Invalid date format provided for Date of Birth. Ensure it is YYYY-MM-DD or leave blank.";
+      } else if ((error as any).code === '23505') { // unique_violation
+         if ((error as any).constraint === 'users_email_key') {
+            errorMessage = "This email address is already in use by another user.";
+         } else if ((error as any).constraint === 'users_pkey') {
+            // This shouldn't happen in an update, but good to be aware of
+            errorMessage = "User ID conflict. This is unexpected.";
+         } else {
+            errorMessage = "A unique constraint was violated. Please check your input.";
+         }
+      } else if ((error as any).code === '22P02') { // invalid_text_representation (e.g. bad UUID)
+          if ((error.message as string).includes("uuid")) {
+            errorMessage = "An invalid ID was provided for one of the roles.";
+          } else {
+            errorMessage = "Invalid data format submitted.";
+          }
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    // Return a structured error to the client, do not throw here if form needs to handle it
+    return { success: false, message: errorMessage, errorDetail: error instanceof Error ? { name: error.name, message: error.message, code: (error as any).code } : error };
   }
 }
 
