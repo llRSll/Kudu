@@ -4,6 +4,7 @@ import { db } from "../drizzle/client";
 import { Users, Roles, UserRoles, FamilyMembers } from "../drizzle/schema";
 import { InferSelectModel, InferInsertModel, eq, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { createClient } from '@supabase/supabase-js';
 
 // Define the type based on the Drizzle schema
 export type User = InferSelectModel<typeof Users>;
@@ -158,7 +159,9 @@ export async function updateUser(userId: string, payload: Partial<typeof Users.$
           assigned_at: new Date(),
         }));
         console.log('[updateUser] Inserting new roles:', rolesToInsert);
-        await tx.insert(UserRoles).values(rolesToInsert);
+        await tx.insert(UserRoles)
+          .values(rolesToInsert)
+          .onConflictDoNothing(); // Handle case where role assignment already exists
         console.log('[updateUser] New roles inserted.');
       }
     });
@@ -318,47 +321,68 @@ export async function createUser(formData: FormData): Promise<string> {
 
 // New function to delete a user
 export async function deleteUser(userId: string): Promise<{ success: boolean; message?: string }> {
-  if (!userId) {
-    return { success: false, message: "User ID is required for deletion." };
+  console.log(`[deleteUser] Attempting to delete user with ID: ${userId}`);
+
+  // Ensure environment variables are set
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error('[deleteUser] Supabase URL or Service Role Key is not configured.');
+    return { success: false, message: 'Server configuration error.' };
   }
 
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
   try {
-    await db.transaction(async (tx) => {
-      // 1. Delete from UserRoles
-      console.log(`Deleting user roles for user ID: ${userId}`);
-      await tx.delete(UserRoles).where(eq(UserRoles.user_id, userId));
+    // First, attempt to delete the user from Supabase Auth
+    // This is often preferred first, as if this fails, you might not want to delete DB records
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
-      // 2. Delete from FamilyMembers
-      console.log(`Deleting family memberships for user ID: ${userId}`);
-      await tx.delete(FamilyMembers).where(eq(FamilyMembers.user_id, userId));
-      
-      // Add deletions from other related tables here if necessary
-      // Example:
-      // await tx.delete(UserActivity).where(eq(UserActivity.user_id, userId));
-      // await tx.delete(UserPreferences).where(eq(UserPreferences.user_id, userId));
-
-      // 3. Delete the user from the Users table
-      console.log(`Deleting user from Users table with ID: ${userId}`);
-      const deleteResult = await tx.delete(Users).where(eq(Users.id, userId)).returning({ id: Users.id });
-
-      if (deleteResult.length === 0) {
-        throw new Error("User not found or already deleted.");
+    if (authError) {
+      // If the user doesn't exist in Auth, it might have been already deleted or never existed.
+      // Supabase returns a 404 in such cases, which is fine if we intend to clean up the DB record.
+      // However, other errors (like network issues, or permissions) should be treated as failures.
+      if (authError.status !== 404) {
+        console.error(`[deleteUser] Error deleting user from Supabase Auth (ID: ${userId}):`, authError);
+        return { success: false, message: `Failed to delete user from authentication: ${authError.message}` };
       }
+      console.warn(`[deleteUser] User ${userId} not found in Supabase Auth or already deleted. Proceeding with DB deletion.`);
+    }
+
+    // Proceed with deleting from the database
+    await db.transaction(async (tx) => {
+      console.log(`[deleteUser] Deleting associated roles for user: ${userId} from UserRoles table.`);
+      await tx.delete(UserRoles).where(eq(UserRoles.user_id, userId));
+      console.log('[deleteUser] User roles deleted from UserRoles.');
+
+      console.log(`[deleteUser] Deleting family member entries for user: ${userId} from FamilyMembers table.`);
+      await tx.delete(FamilyMembers).where(eq(FamilyMembers.user_id, userId));
+      console.log('[deleteUser] Family member entries deleted from FamilyMembers.');
+
+      console.log(`[deleteUser] Deleting user: ${userId} from Users table.`);
+      await tx.delete(Users).where(eq(Users.id, userId));
+      console.log('[deleteUser] User deleted from Users table.');
     });
 
-    // Revalidate paths to reflect the deletion
+    console.log(`[deleteUser] User ${userId} successfully deleted from database and authentication.`);
     revalidatePath('/users');
-    revalidatePath('/'); // Revalidate home if users are listed there or count is shown
+    // Also revalidate any specific user page if it exists, e.g., /users/[userId]
+    // revalidatePath(`/users/${userId}`);
 
-    console.log(`User ${userId} deleted successfully.`);
-    return { success: true };
+    return { success: true, message: 'User deleted successfully from all systems.' };
 
   } catch (error) {
-    console.error(`Error deleting user with ID ${userId}:`, error);
-    let message = "Failed to delete user.";
+    console.error(`[deleteUser] Error during delete process for user ID ${userId}:`, error);
+    let errorMessage = 'Failed to delete user.';
     if (error instanceof Error) {
-      message = error.message;
+      errorMessage = error.message;
     }
-    return { success: false, message };
+    return { success: false, message: errorMessage };
   }
 }
