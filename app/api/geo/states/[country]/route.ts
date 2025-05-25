@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export interface State {
   code: string;
@@ -8,7 +8,7 @@ export interface State {
 // Map of country codes to their respective states/provinces
 const statesByCountry: Record<string, State[]> = {
   // Australia
-  "AU": [
+  AU: [
     { code: "ACT", name: "Australian Capital Territory" },
     { code: "NSW", name: "New South Wales" },
     { code: "NT", name: "Northern Territory" },
@@ -16,11 +16,11 @@ const statesByCountry: Record<string, State[]> = {
     { code: "SA", name: "South Australia" },
     { code: "TAS", name: "Tasmania" },
     { code: "VIC", name: "Victoria" },
-    { code: "WA", name: "Western Australia" }
+    { code: "WA", name: "Western Australia" },
   ],
-  
+
   // United States
-  "US": [
+  US: [
     { code: "AL", name: "Alabama" },
     { code: "AK", name: "Alaska" },
     { code: "AZ", name: "Arizona" },
@@ -76,11 +76,11 @@ const statesByCountry: Record<string, State[]> = {
     { code: "GU", name: "Guam" },
     { code: "MP", name: "Northern Mariana Islands" },
     { code: "PR", name: "Puerto Rico" },
-    { code: "VI", name: "U.S. Virgin Islands" }
+    { code: "VI", name: "U.S. Virgin Islands" },
   ],
-  
+
   // Canada
-  "CA": [
+  CA: [
     { code: "AB", name: "Alberta" },
     { code: "BC", name: "British Columbia" },
     { code: "MB", name: "Manitoba" },
@@ -93,19 +93,19 @@ const statesByCountry: Record<string, State[]> = {
     { code: "PE", name: "Prince Edward Island" },
     { code: "QC", name: "Quebec" },
     { code: "SK", name: "Saskatchewan" },
-    { code: "YT", name: "Yukon" }
+    { code: "YT", name: "Yukon" },
   ],
-  
+
   // United Kingdom
-  "GB": [
+  GB: [
     { code: "ENG", name: "England" },
     { code: "SCT", name: "Scotland" },
     { code: "WLS", name: "Wales" },
-    { code: "NIR", name: "Northern Ireland" }
+    { code: "NIR", name: "Northern Ireland" },
   ],
-  
+
   // India
-  "IN": [
+  IN: [
     { code: "AP", name: "Andhra Pradesh" },
     { code: "AR", name: "Arunachal Pradesh" },
     { code: "AS", name: "Assam" },
@@ -141,11 +141,11 @@ const statesByCountry: Record<string, State[]> = {
     { code: "JK", name: "Jammu and Kashmir" },
     { code: "LA", name: "Ladakh" },
     { code: "LD", name: "Lakshadweep" },
-    { code: "PY", name: "Puducherry" }
+    { code: "PY", name: "Puducherry" },
   ],
-  
+
   // Brazil
-  "BR": [
+  BR: [
     { code: "AC", name: "Acre" },
     { code: "AL", name: "Alagoas" },
     { code: "AP", name: "Amapá" },
@@ -172,18 +172,18 @@ const statesByCountry: Record<string, State[]> = {
     { code: "SC", name: "Santa Catarina" },
     { code: "SP", name: "São Paulo" },
     { code: "SE", name: "Sergipe" },
-    { code: "TO", name: "Tocantins" }
-  ]
+    { code: "TO", name: "Tocantins" },
+  ],
 };
 
 // Default states for certain countries
 export const defaultStates: Record<string, string> = {
-  "AU": "NSW", // New South Wales
-  "US": "CA",  // California
-  "CA": "ON",  // Ontario
-  "GB": "ENG", // England
-  "IN": "MH",  // Maharashtra
-  "BR": "SP"   // São Paulo
+  AU: "NSW", // New South Wales
+  US: "CA", // California
+  CA: "ON", // Ontario
+  GB: "ENG", // England
+  IN: "MH", // Maharashtra
+  BR: "SP", // São Paulo
 };
 
 export async function GET(
@@ -193,12 +193,16 @@ export async function GET(
   try {
     const countryCode = params.country.toUpperCase();
     const states = statesByCountry[countryCode] || [];
-    
-    // Sort states by name
-    const sortedStates = [...states].sort((a, b) => a.name.localeCompare(b.name));
-    
+
+    const sortedStates = [...states].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
     return NextResponse.json(sortedStates);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch states" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch states" },
+      { status: 500 }
+    );
   }
-} 
+}
