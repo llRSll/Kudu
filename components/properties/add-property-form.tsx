@@ -643,6 +643,7 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
             onChange={handleChange}
             className="col-span-3"
             required
+            type="number"
           />
         </div>
 
@@ -656,6 +657,7 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
             value={formData.unit}
             onChange={handleChange}
             className="col-span-3"
+            type="number"
           />
         </div>
 
@@ -687,6 +689,7 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
             value={formData.postalCode}
             onChange={handleChange}
             className="col-span-3"
+            type="number"
           />
         </div>
       </div>

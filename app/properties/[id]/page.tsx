@@ -3,7 +3,7 @@
 import { PropertyDetail } from "@/components/properties/property-detail"
 import { useParams, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import { fetchInvestmentPropertyById, fetchPropertyCashFlow } from "@/lib/api/investments-properties"
+import { fetchInvestmentPropertyById, fetchPropertyById, fetchPropertyCashFlow } from "@/lib/api/investments-properties"
 import { Property } from "@/components/properties/property-list"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
@@ -38,7 +38,7 @@ export default function PropertyPage() {
       
       try {
         setIsLoading(true)
-        const data = await fetchInvestmentPropertyById(propertyId)
+        const data = await fetchPropertyById(propertyId)
         if (!data) {
           setError("Property not found")
         } else {

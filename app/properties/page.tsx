@@ -172,7 +172,6 @@ export default function PropertiesPage() {
         Updated_At: new Date().toISOString(),
       };
 
-      // Save to Supabase
       const propertyId = await createProperty(propertyData, addressData);
 
       if (propertyId) {
@@ -195,7 +194,7 @@ export default function PropertiesPage() {
   // Filter properties for search
   const [searchTerm, setSearchTerm] = useState("");
 
-  // console.log("Current properties:=================>", properties);
+  console.log("Current properties:=================>", properties);
 
   const filteredProperties = properties.filter(
     (property) =>

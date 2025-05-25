@@ -335,15 +335,13 @@ export async function createProperty(
       JSON.stringify(property, null, 2)
     );
 
-    // const propertyId = `prop-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
     const propertyId = uuidv4();
     const entity_id = "580a11fa-a8ca-4f86-a69c-a9daf4224d93";
     const investment_id = "b4255abe-fd83-41d0-b8a0-c86a8df42594";
 
-    const propertyData = {
+    // Prepare the nested payload if address is provided
+    let payload: any = {
       id: propertyId,
-      // investment_id: property.Investment_Id || propertyId,
       investment_id: investment_id,
       name: property.Name,
       type: property.Type,
@@ -363,85 +361,31 @@ export async function createProperty(
       entity_id: entity_id,
     };
 
-    console.log(
-      "Inserting with simplified data:",
-      JSON.stringify(propertyData, null, 2)
-    );
-
+    if (address) {
+      payload = {
+        ...payload,
+        id: uuidv4(),
+        // property_id: propertyId,
+        unit: address.Unit,
+        street_number: address.Street_Number,
+        street_name: address.Street_Name,
+        // street_type: address.Street_Type,
+        suburb: address.Suburb,
+        state: address.State,
+        postcode: address.Postcode,
+        country: address.Country,
+        updated_at: new Date().toISOString(),
+      };
+    }
+    console.log("Payload for DB insert:", JSON.stringify(payload, null, 2));
+    // Use nested insert if address is provided, otherwise simple insert
     const { data, error } = await supabase
       .from("properties")
-      .insert([propertyData]);
+      .insert([payload], { returning: "representation" });
 
     if (error) {
-      console.error("Error creating property:", error);
-      // Try with minimal data as fallback
-      console.log("Attempting fallback with minimal data...");
-      const minimalData = {
-        id: propertyId,
-        investment_id: property.Investment_Id || propertyId,
-        name: property.Name || "Untitled Property",
-      };
-
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from("properties")
-        .insert([minimalData]);
-
-      if (fallbackError) {
-        console.error("Fallback attempt also failed:", fallbackError);
-        return { id: null, error: `Insert failed: ${error.message || error}` };
-      } else {
-        console.log("Fallback successful with minimal data!");
-        return { id: propertyId };
-      }
-    }
-
-    console.log("Property created successfully with ID:", propertyId);
-
-    // If address is provided, create address record (should be in a separate table)
-    if (address) {
-      try {
-        console.log(
-          "Attempting to create address with data:",
-          JSON.stringify(address, null, 2)
-        );
-        const addressData = {
-          // id: `addr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          id: uuidv4(),
-          // property_id: propertyId,
-          unit: address.Unit,
-          street_number: address.Street_Number,
-          street_name: address.Street_Name,
-          // street_type: address.Street_Type,
-          suburb: address.Suburb,
-          state: address.State,
-          postcode: address.Postcode,
-          country: address.Country,
-          updated_at: new Date().toISOString(),
-        };
-
-        // Make sure you are inserting into the correct address table!
-        const { error: addressError } = await supabase
-          .from("properties") // <-- Use your actual address table name
-          .insert([addressData]);
-
-        if (addressError) {
-          console.error("Error creating property address:", addressError);
-          return {
-            id: propertyId,
-            error: `Address insert failed: ${
-              addressError.message || addressError
-            }`,
-          };
-        } else {
-          console.log("Address created successfully");
-        }
-      } catch (addressException) {
-        console.error("Exception while creating address:", addressException);
-        return {
-          id: propertyId,
-          error: `Address insert exception: ${addressException}`,
-        };
-      }
+      console.error("Error creating property (with address):", error);
+      return { id: null, error: error.message || String(error) };
     }
 
     return { id: propertyId };
@@ -474,5 +418,37 @@ export async function fetchProperties(): Promise<Property[]> {
   } catch (err) {
     console.error("Unexpected error in fetchProperties:", err);
     return [];
+  }
+}
+
+export async function fetchPropertyById(id: string): Promise<Property | null> {
+  try {
+    if (!id) {
+      console.error("No property id provided to fetchPropertyById");
+      return null;
+    }
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // Not found
+        console.warn(`Property with id ${id} not found.`);
+        return null;
+      }
+      console.error("Error fetching property by id:", error);
+      return null;
+    }
+    if (!data) {
+      console.warn(`No data returned for property id ${id}.`);
+      return null;
+    }
+    return data as unknown as Property;
+  } catch (error: any) {
+    console.error("Unexpected error in fetchPropertyById:", error);
+    return null;
   }
 }
