@@ -132,7 +132,6 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
         toast.success("User created. Refreshing list...");
       }
     } catch (err: any) {
-      debugger;
       toast.error(err.message || "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
