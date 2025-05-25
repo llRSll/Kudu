@@ -1,54 +1,55 @@
-import { supabase } from '@/lib/supabase'
-import { Property } from '@/components/properties/property-list'
+import { supabase } from "@/lib/supabase";
+import { Property } from "@/components/properties/property-list";
+import { v4 as uuidv4 } from "uuid";
 
 // Define database types that match the Supabase schema
 export interface InvestmentProperty {
-  Id: string
-  Investment_Id: string
-  Name: string | null
-  Type: string | null
-  Status: string | null
-  Land_Price: number | null
-  Build_Price: number | null
-  Purchase_Date: string | null
-  Current_Valuation: number | null
-  Last_Valuation_Date: string | null
-  Area: number | null
-  Bedrooms: number | null
-  Bathrooms: number | null
-  Parking: number | null
-  Has_Pool: boolean | null
-  Has_Security_System: boolean | null
-  Pets_Allowed: boolean | null
-  Furnished: boolean | null
-  Has_Solar: boolean | null
-  Amenities: string | null
+  Id: string;
+  Investment_Id: string;
+  Name: string | null;
+  Type: string | null;
+  Status: string | null;
+  Land_Price: number | null;
+  Build_Price: number | null;
+  Purchase_Date: string | null;
+  Current_Valuation: number | null;
+  Last_Valuation_Date: string | null;
+  Area: number | null;
+  Bedrooms: number | null;
+  Bathrooms: number | null;
+  Parking: number | null;
+  Has_Pool: boolean | null;
+  Has_Security_System: boolean | null;
+  Pets_Allowed: boolean | null;
+  Furnished: boolean | null;
+  Has_Solar: boolean | null;
+  Amenities: string | null;
 }
 
 export interface PropertyAddress {
-  Id: string
-  Property_Id: string | null
-  Unit: number | null
-  Street_Number: number | null
-  Street_Name: string | null
-  Street_Type: string | null
-  Suburb: string | null
-  State: string | null
-  Postcode: number | null
-  Country: string | null
-  Updated_At: string | null
+  Id: string;
+  Property_Id: string | null;
+  Unit: number | null;
+  Street_Number: number | null;
+  Street_Name: string | null;
+  Street_Type: string | null;
+  Suburb: string | null;
+  State: string | null;
+  Postcode: number | null;
+  Country: string | null;
+  Updated_At: string | null;
 }
 
 export interface CashFlow {
-  Id: string
-  Value: number | null
-  User_Id: string | null
-  Transaction_Type: string | null
-  Entity_Id: string | null
-  Family_Id: string | null
-  Invest_Id: string | null
-  Debit_Credit: string | null
-  Timestamp: string | null
+  Id: string;
+  Value: number | null;
+  User_Id: string | null;
+  Transaction_Type: string | null;
+  Entity_Id: string | null;
+  Family_Id: string | null;
+  Invest_Id: string | null;
+  Debit_Credit: string | null;
+  Timestamp: string | null;
 }
 
 // Main function to fetch all properties
@@ -57,7 +58,7 @@ export async function fetchInvestmentProperties(): Promise<Property[]> {
     // For demo purposes, return an empty array quickly
     // This will allow users to add their own properties
     // In a real app with a connected database, we would use the supabase logic below
-    return []
+    return [];
 
     /*
     // The following code is disabled for the demo but would work with a real database
@@ -156,18 +157,20 @@ export async function fetchInvestmentProperties(): Promise<Property[]> {
     return transformedProperties
     */
   } catch (error) {
-    console.error('Unexpected error in fetchInvestmentProperties:', error)
-    return []
+    console.error("Unexpected error in fetchInvestmentProperties:", error);
+    return [];
   }
 }
 
 // Function to fetch a single property by ID
-export async function fetchInvestmentPropertyById(id: string): Promise<Property | null> {
+export async function fetchInvestmentPropertyById(
+  id: string
+): Promise<Property | null> {
   try {
     // For demo purposes, return null quickly
     // In a real app with a connected database, we would use the supabase logic
-    return null
-    
+    return null;
+
     /*
     const { data: property, error } = await supabase
       .from('Investments_Properties')
@@ -229,8 +232,8 @@ export async function fetchInvestmentPropertyById(id: string): Promise<Property 
     }
     */
   } catch (error) {
-    console.error('Error in fetchInvestmentPropertyById:', error)
-    return null
+    console.error("Error in fetchInvestmentPropertyById:", error);
+    return null;
   }
 }
 
@@ -238,8 +241,8 @@ export async function fetchInvestmentPropertyById(id: string): Promise<Property 
 export async function fetchPropertyCashFlow(propertyId: string) {
   try {
     // For demo purposes, return empty data
-    return []
-    
+    return [];
+
     /*
     const { data, error } = await supabase
       .from('Cash_Flow')
@@ -293,132 +296,183 @@ export async function fetchPropertyCashFlow(propertyId: string) {
     return Array.from(monthlyData.values())
     */
   } catch (error) {
-    console.error('Error in fetchPropertyCashFlow:', error)
-    return []
+    console.error("Error in fetchPropertyCashFlow:", error);
+    return [];
   }
 }
 
 // Function to test Supabase connection
 export async function testSupabaseConnection(): Promise<boolean> {
   try {
-    console.log('Testing Supabase connection...');
-    
+    console.log("Testing Supabase connection...");
+
     // Try to get a count from a simple table
     const { count, error } = await supabase
-      .from('Investments_Properties')
-      .select('*', { count: 'exact', head: true });
-    
+      .from("properties")
+      .select("*", { count: "exact", head: true });
+
     if (error) {
-      console.error('Connection test failed:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+      console.error("Connection test failed:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
       return false;
     }
-    
-    console.log('Connection test successful! Count:', count);
+
+    console.log("Connection test successful! Count:", count);
     return true;
   } catch (error) {
-    console.error('Error testing connection:', error);
+    console.error("Error testing connection:", error);
     return false;
   }
 }
 
-// Function to create a new property
-export async function createProperty(property: Omit<InvestmentProperty, 'Id'>, address?: Omit<PropertyAddress, 'Id' | 'Property_Id'>): Promise<string | null> {
+export async function createProperty(
+  property: Omit<InvestmentProperty, "Id">,
+  address?: Omit<PropertyAddress, "Id" | "Property_Id">
+): Promise<{ id: string | null; error?: string }> {
   try {
-    console.log('Attempting to create property with data:', JSON.stringify(property, null, 2));
-    
-    // Generate a UUID for the property
-    const propertyId = `prop-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
-    // Create a simplified property object with only essential fields
+    console.log(
+      "Attempting to create property with data:",
+      JSON.stringify(property, null, 2)
+    );
+
+    // const propertyId = `prop-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    const propertyId = uuidv4();
+    const entity_id = "580a11fa-a8ca-4f86-a69c-a9daf4224d93";
+    const investment_id = "b4255abe-fd83-41d0-b8a0-c86a8df42594";
+
     const propertyData = {
-      Id: propertyId,
-      Investment_Id: property.Investment_Id || propertyId,
-      Name: property.Name,
-      Type: property.Type,
-      Status: property.Status,
-      Land_Price: property.Land_Price,
-      Build_Price: property.Build_Price,
-      Purchase_Date: property.Purchase_Date,
-      Current_Valuation: property.Current_Valuation || 0,
-      Last_Valuation_Date: property.Last_Valuation_Date || new Date().toISOString(),
-      Area: property.Area || 0,
-      Bedrooms: property.Bedrooms,
-      Bathrooms: property.Bathrooms,
-      Parking: property.Parking,
-      Has_Pool: property.Has_Pool || false,
-      Amenities: property.Amenities
+      id: propertyId,
+      // investment_id: property.Investment_Id || propertyId,
+      investment_id: investment_id,
+      name: property.Name,
+      type: property.Type,
+      status: property.Status,
+      land_price: property.Land_Price,
+      build_price: property.Build_Price,
+      purchase_date: property.Purchase_Date,
+      current_valuation: property.Current_Valuation || 0,
+      last_valuation_date:
+        property.Last_Valuation_Date || new Date().toISOString(),
+      area: property.Area || 0,
+      bedrooms: property.Bedrooms,
+      bathrooms: property.Bathrooms,
+      parking: property.Parking,
+      has_pool: property.Has_Pool || false,
+      amenities: property.Amenities,
+      entity_id: entity_id,
     };
-    
-    console.log('Inserting with simplified data:', JSON.stringify(propertyData, null, 2));
-    
-    // Insert property with the generated ID
+
+    console.log(
+      "Inserting with simplified data:",
+      JSON.stringify(propertyData, null, 2)
+    );
+
     const { data, error } = await supabase
-      .from('Investments_Properties')
+      .from("properties")
       .insert([propertyData]);
 
     if (error) {
-      console.error('Error creating property:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      console.error('Error details:', error.details);
-      
+      console.error("Error creating property:", error);
       // Try with minimal data as fallback
-      console.log('Attempting fallback with minimal data...');
+      console.log("Attempting fallback with minimal data...");
       const minimalData = {
-        Id: propertyId,
-        Investment_Id: property.Investment_Id || propertyId,
-        Name: property.Name || 'Untitled Property'
+        id: propertyId,
+        investment_id: property.Investment_Id || propertyId,
+        name: property.Name || "Untitled Property",
       };
-      
+
       const { data: fallbackData, error: fallbackError } = await supabase
-        .from('Investments_Properties')
+        .from("properties")
         .insert([minimalData]);
-      
+
       if (fallbackError) {
-        console.error('Fallback attempt also failed:', fallbackError);
-        throw error; // Throw original error
+        console.error("Fallback attempt also failed:", fallbackError);
+        return { id: null, error: `Insert failed: ${error.message || error}` };
       } else {
-        console.log('Fallback successful with minimal data!');
-        return propertyId;
+        console.log("Fallback successful with minimal data!");
+        return { id: propertyId };
       }
     }
-    
-    console.log('Property created successfully with ID:', propertyId);
 
-    // If address is provided, create address record
+    console.log("Property created successfully with ID:", propertyId);
+
+    // If address is provided, create address record (should be in a separate table)
     if (address) {
-      console.log('Attempting to create address with data:', JSON.stringify(address, null, 2));
-      
-      const addressData = {
-        Id: `addr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        Property_Id: propertyId,
-        Unit: address.Unit,
-        Street_Number: address.Street_Number,
-        Street_Name: address.Street_Name,
-        Street_Type: address.Street_Type,
-        Suburb: address.Suburb,
-        State: address.State,
-        Postcode: address.Postcode,
-        Country: address.Country,
-        Updated_At: new Date().toISOString()
-      };
-      
-      const { error: addressError } = await supabase
-        .from('Properties_Adresses')
-        .insert([addressData]);
+      try {
+        console.log(
+          "Attempting to create address with data:",
+          JSON.stringify(address, null, 2)
+        );
+        const addressData = {
+          // id: `addr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          id: uuidv4(),
+          // property_id: propertyId,
+          unit: address.Unit,
+          street_number: address.Street_Number,
+          street_name: address.Street_Name,
+          // street_type: address.Street_Type,
+          suburb: address.Suburb,
+          state: address.State,
+          postcode: address.Postcode,
+          country: address.Country,
+          updated_at: new Date().toISOString(),
+        };
 
-      if (addressError) {
-        console.error('Error creating property address:', addressError);
-      } else {
-        console.log('Address created successfully');
+        // Make sure you are inserting into the correct address table!
+        const { error: addressError } = await supabase
+          .from("properties") // <-- Use your actual address table name
+          .insert([addressData]);
+
+        if (addressError) {
+          console.error("Error creating property address:", addressError);
+          return {
+            id: propertyId,
+            error: `Address insert failed: ${
+              addressError.message || addressError
+            }`,
+          };
+        } else {
+          console.log("Address created successfully");
+        }
+      } catch (addressException) {
+        console.error("Exception while creating address:", addressException);
+        return {
+          id: propertyId,
+          error: `Address insert exception: ${addressException}`,
+        };
       }
     }
 
-    return propertyId;
-  } catch (error) {
-    console.error('Error in createProperty:', error);
-    return null;
+    return { id: propertyId };
+  } catch (error: any) {
+    console.error("Error in createProperty:", error);
+    return { id: null, error: error?.message || String(error) };
   }
-} 
+}
+
+/**
+ * Fetch all properties from the "properties" table in Supabase.
+ * Returns an array of Property objects or an empty array on error.
+ */
+export async function fetchProperties(): Promise<Property[]> {
+  try {
+    const { data, error } = await supabase.from("properties").select("*");
+    if (error) {
+      console.error("Error fetching properties:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      console.log("No properties found.");
+      return [];
+    }
+
+    // Optionally, transform data to match your Property interface if needed
+    // For now, we assume the DB columns match the Property interface
+    return data as Property[];
+  } catch (err) {
+    console.error("Unexpected error in fetchProperties:", err);
+    return [];
+  }
+}

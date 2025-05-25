@@ -361,6 +361,7 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
       .filter(Boolean)
       .join(", ");
 
+    // delete formData.description;
     // Prepare the property data
     const newProperty = {
       name: formData.name,
@@ -372,22 +373,22 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
     };
 
     try {
-      const response = await fetch("/api/properties/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newProperty),
-      });
+      // const response = await fetch("/api/properties/create", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(newProperty),
+      // });
 
-      const result = await response.json();
+      // const result = await response.json();
 
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to create property");
-      }
+      // if (!response.ok) {
+      //   throw new Error(result.error || "Failed to create property");
+      // }
 
       // Call the parent function to add the property to the list
-      onAddProperty(result.property);
+      onAddProperty(newProperty as Property);
 
       // Reset the form and close the dialog
       setFormData(defaultFormData);
