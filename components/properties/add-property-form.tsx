@@ -20,21 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { Property } from "./property-list";
+// import { Property } from "./property-list";
 import { Plus, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,209 +29,8 @@ import { cn } from "@/lib/utils";
 import geoService from "@/lib/services/geo-service";
 import { Country } from "@/app/api/geo/countries/route";
 import { State } from "@/app/api/geo/states/[country]/route";
-
-interface AddPropertyFormProps {
-  onAddProperty: (property: Property) => void;
-}
-
-// Extended property data interface
-interface ExtendedPropertyData {
-  // Basic info
-  name: string;
-  type: string;
-  status:
-    | "active"
-    | "prospect"
-    | "under-contract"
-    | "in-development"
-    | "for-sale"
-    | "pending-sale"
-    | "archived";
-  description: string;
-
-  // Location
-  streetAddress: string;
-  unit: string;
-  city: string;
-  state: string;
-  stateLabel?: string; // For display purposes
-  postalCode: string;
-  country: string;
-  countryLabel?: string; // For display purposes
-
-  // Details
-  area: number;
-  yearBuilt: number;
-  bedrooms: number;
-  bathrooms: number;
-  lotSize: number;
-  numUnits: number;
-  numFloors: number;
-  parking: number;
-
-  // Financial
-  currentValuation: number;
-  buildPrice: number;
-  purchaseDate: string;
-  landPrice: number;
-  hasExistingStructure: boolean;
-
-  // Additional
-  hasPool: boolean;
-  hasParkingGarage: boolean;
-  hasElevator: boolean;
-  hasSecuritySystem: boolean;
-  petsAllowed: boolean;
-  furnished: boolean;
-  hasSolar: boolean;
-
-  // Notes
-  privateNotes: string;
-}
-
-const defaultFormData: ExtendedPropertyData = {
-  name: "",
-  type: "Residential",
-  status: "active" as
-    | "active"
-    | "prospect"
-    | "under-contract"
-    | "in-development"
-    | "for-sale"
-    | "pending-sale"
-    | "archived",
-  description: "",
-
-  streetAddress: "",
-  unit: "",
-  city: "",
-  state: "",
-  stateLabel: "",
-  postalCode: "",
-  country: "",
-  countryLabel: "",
-
-  area: 0,
-  yearBuilt: new Date().getFullYear(),
-  bedrooms: 0,
-  bathrooms: 0,
-  lotSize: 0,
-  numUnits: 1,
-  numFloors: 1,
-  parking: 0,
-
-  currentValuation: 0,
-  buildPrice: 0,
-  purchaseDate: "",
-  landPrice: 0,
-  hasExistingStructure: false,
-
-  hasPool: false,
-  hasParkingGarage: false,
-  hasElevator: false,
-  hasSecuritySystem: false,
-  petsAllowed: false,
-  furnished: false,
-  hasSolar: false,
-
-  privateNotes: "",
-};
-
-// Lists for generating random code names
-const adjectives = [
-  "Alpine",
-  "Amber",
-  "Azure",
-  "Blazing",
-  "Coastal",
-  "Crystal",
-  "Desert",
-  "Diamond",
-  "Emerald",
-  "Golden",
-  "Harbor",
-  "Horizon",
-  "Jade",
-  "Lunar",
-  "Maple",
-  "Midnight",
-  "Northern",
-  "Oasis",
-  "Pacific",
-  "Phoenix",
-  "Royal",
-  "Ruby",
-  "Sapphire",
-  "Scenic",
-  "Skyline",
-  "Solar",
-  "Summit",
-  "Sunset",
-  "Timber",
-  "Tranquil",
-  "Urban",
-  "Valley",
-  "Verdant",
-  "Vintage",
-  "Vista",
-  "Willow",
-];
-
-const nouns = [
-  "Acres",
-  "Arbor",
-  "Boulevard",
-  "Cove",
-  "Crossing",
-  "Domain",
-  "Estates",
-  "Gardens",
-  "Gateway",
-  "Grove",
-  "Harbor",
-  "Haven",
-  "Heights",
-  "Highlands",
-  "Hills",
-  "Hollow",
-  "Isle",
-  "Lagoon",
-  "Landing",
-  "Lodge",
-  "Manor",
-  "Meadows",
-  "Mews",
-  "Oaks",
-  "Palms",
-  "Pines",
-  "Place",
-  "Plaza",
-  "Point",
-  "Pointe",
-  "Ranch",
-  "Reserve",
-  "Ridge",
-  "Shore",
-  "Springs",
-  "Square",
-  "Station",
-  "Terrace",
-  "Towers",
-  "Trails",
-  "Valley",
-  "Views",
-  "Villas",
-  "Vista",
-  "Woods",
-];
-
-// Function to generate a random code name
-const generateCodeName = (): string => {
-  const randomAdjective =
-    adjectives[Math.floor(Math.random() * adjectives.length)];
-  const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-  return `${randomAdjective} ${randomNoun}`;
-};
+import { defaultFormData, generateCodeName } from "./utils";
+import { AddPropertyFormProps, ExtendedPropertyData, Property } from "./types";
 
 export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
   const [open, setOpen] = useState(false);
@@ -361,79 +146,25 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
       .filter(Boolean)
       .join(", ");
 
-    // delete formData.description;
-    // Prepare the property data
-    const newProperty = {
-      name: formData.name,
-      type: formData.type,
-      location,
-      value: formData.currentValuation,
-      status: formData.status,
-      extendedData: { ...formData },
-    };
-
     try {
-      // const response = await fetch("/api/properties/create", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(newProperty),
-      // });
+      onAddProperty({
+        ...formData,
+        location,
+        value: formData.currentValuation,
+        id: "",
+        income: 0,
+        expenses: 0,
+        occupancy: 0,
+        image: "",
+      });
 
-      // const result = await response.json();
-
-      // if (!response.ok) {
-      //   throw new Error(result.error || "Failed to create property");
-      // }
-
-      // Call the parent function to add the property to the list
-      onAddProperty(newProperty as Property);
-
-      // Reset the form and close the dialog
       setFormData(defaultFormData);
       setActiveTab("basic");
       setOpen(false);
-
-      // Show success toast
-      //toast.success("Property created successfully!");
     } catch (error: any) {
-      // Show error toast
-      // toast.error(
-      //   error.message || "An error occurred while creating the property."
-      // );
+      // Optionally show error toast here
     }
   };
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault()
-
-  //   // Format location from address fields
-  //   const location = [
-  //     formData.city,
-  //     formData.stateLabel
-  //   ].filter(Boolean).join(", ")
-
-  //   // Create a new property with a unique ID
-  //   const newProperty: Property = {
-  //     id: `property-${Date.now()}`,
-  //     name: formData.name,
-  //     type: formData.type,
-  //     location,
-  //     value: formData.currentValuation,
-  //     income: 0,
-  //     expenses: 0,
-  //     occupancy: 100,
-  //     status: formData.status,
-  //     image: "/placeholder.svg?height=200&width=300",
-  //     // Add extended property data that can be used elsewhere
-  //     extendedData: { ...formData }
-  //   }
-
-  //   onAddProperty(newProperty)
-  //   setFormData(defaultFormData)
-  //   setActiveTab("basic")
-  //   setOpen(false)
-  // }
 
   // In the location section replace the country dropdown with this:
   const countryDropdown = (
@@ -643,7 +374,6 @@ export function AddPropertyForm({ onAddProperty }: AddPropertyFormProps) {
             onChange={handleChange}
             className="col-span-3"
             required
-            type="number"
           />
         </div>
 

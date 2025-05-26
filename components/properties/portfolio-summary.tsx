@@ -590,7 +590,7 @@ export function PortfolioSummary({ properties }: { properties: Property[] }) {
   const [dateRange, setDateRange] = useState<DateRangeValue | undefined>(undefined)
   
   const totalProperties = properties.length
-  const monthlyIncome = properties.reduce((sum: number, prop: Property) => sum + prop.income, 0)
+  const monthlyIncome = properties.reduce((sum: number, prop: Property) => sum + prop.monthly_income, 0)
   const activeProperties = properties.filter((p: Property) => p.status === "active").length
   
   // Default value or calculated from properties if available

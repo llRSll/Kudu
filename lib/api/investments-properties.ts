@@ -1,5 +1,6 @@
+import { Property } from "@/components/properties/types";
 import { supabase } from "@/lib/supabase";
-import { Property } from "@/components/properties/property-list";
+import { count } from "console";
 import { v4 as uuidv4 } from "uuid";
 
 // Define database types that match the Supabase schema
@@ -326,8 +327,8 @@ export async function testSupabaseConnection(): Promise<boolean> {
 }
 
 export async function createProperty(
-  property: Omit<InvestmentProperty, "Id">,
-  address?: Omit<PropertyAddress, "Id" | "Property_Id">
+  property: Omit<Property, "Id">
+  // address?: Omit<PropertyAddress, "Id" | "Property_Id">
 ): Promise<{ id: string | null; error?: string }> {
   try {
     console.log(
@@ -343,41 +344,35 @@ export async function createProperty(
     let payload: any = {
       id: propertyId,
       investment_id: investment_id,
-      name: property.Name,
-      type: property.Type,
-      status: property.Status,
-      land_price: property.Land_Price,
-      build_price: property.Build_Price,
-      purchase_date: property.Purchase_Date,
-      current_valuation: property.Current_Valuation || 0,
+      name: property.name,
+      type: property.type,
+      status: property.status,
+      land_price: property.landPrice,
+      build_price: property.buildPrice,
+      purchase_date: property.purchaseDate,
+      current_valuation: property.currentValuation || 0,
       last_valuation_date:
-        property.Last_Valuation_Date || new Date().toISOString(),
-      area: property.Area || 0,
-      bedrooms: property.Bedrooms,
-      bathrooms: property.Bathrooms,
-      parking: property.Parking,
-      has_pool: property.Has_Pool || false,
-      amenities: property.Amenities,
+        property.lastValuationDate || new Date().toISOString(),
+      area: property.area || 0,
+      bedrooms: property.bedrooms,
+      bathrooms: property.bathrooms,
+      parking: property.parking,
+      has_pool: property.hasPool || false,
+      amenities: property.amenities,
       entity_id: entity_id,
+      unit: property.unit,
+      street_number: property.streetNumber,
+      street_name: property.streetName,
+      suburb: property.suburb,
+      state: property.state,
+      postcode: property.postcode,
+      country: property.country,
+      updated_at: new Date().toISOString(),
     };
 
-    if (address) {
-      payload = {
-        ...payload,
-        id: uuidv4(),
-        // property_id: propertyId,
-        unit: address.Unit,
-        street_number: address.Street_Number,
-        street_name: address.Street_Name,
-        // street_type: address.Street_Type,
-        suburb: address.Suburb,
-        state: address.State,
-        postcode: address.Postcode,
-        country: address.Country,
-        updated_at: new Date().toISOString(),
-      };
-    }
+
     console.log("Payload for DB insert:", JSON.stringify(payload, null, 2));
+    debugger
     // Use nested insert if address is provided, otherwise simple insert
     const { data, error } = await supabase
       .from("properties")

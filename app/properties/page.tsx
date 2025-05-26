@@ -12,9 +12,10 @@ import {
   fetchProperties,
 } from "@/lib/api/investments-properties";
 import { useEffect, useState } from "react";
-import { Property } from "@/components/properties/property-list";
+// import { Property } from "@/components/properties/property-list";
 import { useAuth } from "@/lib/auth-context";
 import { AddPropertyForm } from "@/components/properties/add-property-form";
+import { Property } from "@/components/properties/types";
 // import { fetchProperties } from "@/lib/api/properties"
 
 // Local storage key for properties
@@ -120,59 +121,50 @@ export default function PropertiesPage() {
         return;
       }
 
-      // Extract extended data
-      const formData = newProperty.extendedData;
-
-      if (!formData) {
-        console.error("No extended data found in property");
-        return;
-      }
-
-      // Format property data for Supabase
       const propertyData = {
-        Investment_Id: "", // Will be set by createProperty function
-        Name: formData.name,
-        Type: formData.type,
-        Status: formData.status,
-        Land_Price: formData.landPrice,
-        Build_Price: formData.buildPrice,
-        Purchase_Date: formData.purchaseDate || null,
-        Current_Valuation: formData.currentValuation,
-        Last_Valuation_Date: new Date().toISOString(),
-        Area: formData.area,
-        Bedrooms: formData.bedrooms,
-        Bathrooms: formData.bathrooms,
-        Parking: formData.parking,
-        Has_Pool: formData.hasPool,
-        Has_Security_System: formData.hasSecuritySystem,
-        Pets_Allowed: formData.petsAllowed,
-        Furnished: formData.furnished,
-        Has_Solar: formData.hasSolar,
-        Amenities: JSON.stringify({
-          hasSecuritySystem: formData.hasSecuritySystem,
-          petsAllowed: formData.petsAllowed,
-          furnished: formData.furnished,
-          hasSolar: formData.hasSolar,
-          // Add any other amenities here
+        investmentId: "",
+        name: newProperty.name,
+        type: newProperty.type,
+        status: newProperty.status,
+        landPrice: newProperty.landPrice,
+        buildPrice: newProperty.buildPrice,
+        purchaseDate: newProperty.purchaseDate || null,
+        currentValuation: newProperty.currentValuation,
+        lastValuationDate: new Date().toISOString(),
+        area: newProperty.area,
+        bedrooms: newProperty.bedrooms,
+        bathrooms: newProperty.bathrooms,
+        parking: newProperty.parking,
+        hasPool: newProperty.hasPool,
+        hasSecuritySystem: newProperty.hasSecuritySystem,
+        petsAllowed: newProperty.petsAllowed,
+        furnished: newProperty.furnished,
+        hasSolar: newProperty.hasSolar,
+        amenities: JSON.stringify({
+          hasSecuritySystem: newProperty.hasSecuritySystem,
+          petsAllowed: newProperty.petsAllowed,
+          furnished: newProperty.furnished,
+          hasSolar: newProperty.hasSolar,
         }),
+        unit: newProperty.unit ? Number(newProperty.unit) : null,
+        streetNumber: !isNaN(parseInt(newProperty.streetAddress))
+          ? parseInt(newProperty.streetAddress)
+          : "",
+
+        streetName: newProperty.streetAddress || null,
+        streetType: null, // Not collected in form
+        suburb: newProperty.city,
+        state: newProperty.state,
+        postcode: newProperty.postalCode
+          ? parseInt(newProperty.postalCode)
+          : null,
+        country: newProperty.country,
+        updatedAt: new Date().toISOString(),
       };
 
       // Format address data for Supabase
-      const addressData = {
-        Unit: formData.unit ? parseInt(formData.unit) : null,
-        Street_Number: formData.streetAddress
-          ? parseInt(formData.streetAddress)
-          : null,
-        Street_Name: formData.streetAddress || null,
-        Street_Type: null, // Not collected in form
-        Suburb: formData.city,
-        State: formData.state,
-        Postcode: formData.postalCode ? parseInt(formData.postalCode) : null,
-        Country: formData.country,
-        Updated_At: new Date().toISOString(),
-      };
 
-      const propertyId = await createProperty(propertyData, addressData);
+      const propertyId = await createProperty(propertyData);
 
       if (propertyId) {
         // If saving was successful, update the ID with the one from the database
