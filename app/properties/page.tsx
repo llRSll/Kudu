@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { AddPropertyForm } from "@/components/properties/add-property-form";
 import { Property } from "@/components/properties/types";
+import toast from "react-hot-toast";
 // import { fetchProperties } from "@/lib/api/properties"
 
 // Local storage key for properties
@@ -175,6 +176,7 @@ export default function PropertiesPage() {
 
         // Update local state
         setProperties([...properties, propertyWithDbId]);
+        toast.success("Property added successfully!");
       } else {
         console.error("Failed to save property to database");
       }

@@ -31,7 +31,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Property } from "./types";
-import { ConsoleLogWriter } from "drizzle-orm";
 
 // export interface Property {
 //   id: string;
