@@ -31,6 +31,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Property } from "./types";
+import { ConsoleLogWriter } from "drizzle-orm";
 
 // export interface Property {
 //   id: string;
@@ -325,9 +326,11 @@ export function PropertyList({
   }
 
   // If there are no properties at all, show the empty state
-  if (properties.length === 0) {
+  if (properties.length === 0 && filteredProperties.length === 0) {
     return <EmptyState />;
   }
+
+  console.log("Filtered Properties after tab selection:", filteredProperties);
 
   return (
     <div className="space-y-4">

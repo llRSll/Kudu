@@ -170,7 +170,7 @@ export default function PropertiesPage() {
         // If saving was successful, update the ID with the one from the database
         const propertyWithDbId = {
           ...newProperty,
-          id: propertyId,
+          id: propertyId.id,
         };
 
         // Update local state
@@ -183,17 +183,17 @@ export default function PropertiesPage() {
     }
   };
 
-  // Filter properties for search
   const [searchTerm, setSearchTerm] = useState("");
 
-  console.log("Current properties:=================>", properties);
+  const filteredProperties = properties.filter((property) => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return (
+      property?.name?.toLowerCase().includes(lowerCaseSearchTerm) ||
+      property?.location?.toLowerCase().includes(lowerCaseSearchTerm) ||
+      property?.type?.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  });
 
-  const filteredProperties = properties.filter(
-    (property) =>
-      property?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property?.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property?.type?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   return (
     <div className="flex flex-col gap-6 p-6 w-full">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
