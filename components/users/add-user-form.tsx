@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "react-hot-toast";
 import { type User as UserType } from "@/lib/actions/users";
 import { type Role } from "@/lib/drizzle/schema";
 
@@ -55,29 +55,26 @@ interface CreatedUserDetails {
 
 export function AddUserForm({ setOpen }: AddUserFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [createdUser, setCreatedUser] = useState<CreatedUserDetails | null>(null);
+  const [createdUser, setCreatedUser] = useState<CreatedUserDetails | null>(
+    null
+  );
 
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const response = await fetch('/api/roles');
+        const response = await fetch("/api/roles");
         if (!response.ok) {
-          throw new Error('Failed to fetch roles');
+          throw new Error("Failed to fetch roles");
         }
         const data = await response.json();
         setRoles(data.roles || []);
       } catch (error) {
         console.error("Error fetching roles:", error);
-        toast({
-          title: "Error",
-          description: "Could not load roles. Please try again.",
-          variant: "destructive",
-        });
+        toast.error("Could not load roles. Please try again.");
       }
     }
     fetchRoles();
@@ -95,20 +92,20 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
   });
 
   useEffect(() => {
-    if (roles.length > 0 && !form.getValues('roleId')) {
-      form.setValue('roleId', roles[0].id);
+    if (roles.length > 0 && !form.getValues("roleId")) {
+      form.setValue("roleId", roles[0].id);
     }
   }, [roles, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('[AddUserForm] onSubmit triggered with values:', values);
+    console.log("[AddUserForm] onSubmit triggered with values:", values);
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/users/create', {
-        method: 'POST',
+      const response = await fetch("/api/users/create", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
@@ -116,34 +113,26 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create user');
+        throw new Error(result.error || "Failed to create user");
       }
 
       setOpen(false);
       form.reset();
       router.refresh();
-      
+
       if (result.user) {
         const newUser: UserType = result.user;
         setCreatedUser({
           id: newUser.id,
           full_name: newUser.full_name,
-          role: newUser.role
+          role: newUser.role,
         });
         setShowSuccessModal(true);
       } else {
-        toast({
-          title: "Success!",
-          description: "User created. Refreshing list...",
-        });
+        toast.success("User created. Refreshing list...");
       }
-
     } catch (err: any) {
-      toast({
-        title: "Error Creating User",
-        description: err.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      toast.error(err.message || "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }
@@ -151,7 +140,7 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
 
   const handleGoToUsersPage = () => {
     setShowSuccessModal(false);
-    router.push('/users');
+    router.push("/users");
   };
 
   const handleGoToEditUserDetails = () => {
@@ -171,7 +160,10 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="firstName"
@@ -205,7 +197,11 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Enter email address" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="Enter email address"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -218,7 +214,11 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter password (min 8 characters)" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Enter password (min 8 characters)"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -230,10 +230,20 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={roles.length === 0}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={roles.length === 0}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={roles.length === 0 ? "Loading roles..." : "Select a role"} />
+                        <SelectValue
+                          placeholder={
+                            roles.length === 0
+                              ? "Loading roles..."
+                              : "Select a role"
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -249,10 +259,18 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || roles.length === 0}>
+              <Button
+                type="submit"
+                disabled={isSubmitting || roles.length === 0}
+              >
                 {isSubmitting ? "Creating User..." : "Create User"}
               </Button>
             </DialogFooter>
@@ -266,7 +284,8 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
             <DialogHeader>
               <DialogTitle>User Created Successfully</DialogTitle>
               <DialogDescription>
-                {createdUser.full_name || 'The user'} has been created successfully as a {createdUser.role || 'new'} role.
+                {createdUser.full_name || "The user"} has been created
+                successfully as a {createdUser.role || "new"} role.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-between pt-4">
