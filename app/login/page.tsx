@@ -1,53 +1,80 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { AlertTriangle } from "lucide-react"
-import { supabase } from "@/lib/supabase"
-import { useAuth } from "@/lib/auth-context"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginSchema, LoginSchemaType } from "./Loginschema";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("useradult@demo.com")
-  const [password, setPassword] = useState("password123")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const router = useRouter();
+  const { login } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
+  const onSubmit = async (values: LoginSchemaType) => {
+    setError(null);
+    setLoading(true);
+    const { email, password } = values;
     try {
-      // For now, we'll add a simulated login that just checks for the demo credentials
-      // In reality, we would use Supabase auth here
-      if (email === "useradult@demo.com" && password === "password123") {
-        console.log("Login successful")
-        
-        login({
-          id: "73732bcf-7424-4316-ba64-ec22eb5c7458",
-          email: "useradult@demo.com",
-          name: "Demo User Adult",
-          role: "User_Adult"
-        })
-        
-        // Router redirect is now handled in the auth context
-      } else {
-        setError("Invalid email or password")
+      const { data, error: authError } = await supabase.auth.signInWithPassword(
+        {
+          email,
+          password,
+        }
+      );
+      if (authError) {
+        setError(authError.message || "Invalid email or password");
+        setLoading(false);
+        return;
       }
+      const user = data.user;
+      if (!user) {
+        setError("User not found in authentication response");
+        setLoading(false);
+        return;
+      }
+      login({
+        id: user.id,
+        email: user.email || "",
+        first_name: user.user_metadata?.first_name || null,
+        surname: user.user_metadata?.last_name || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
+        role: user.role || "user",
+      });
     } catch (err) {
-      console.error("Login error:", err)
-      setError("An error occurred during login")
+      console.error("Login error:", err);
+      setError("An error occurred during login");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="h-screen flex items-center justify-center bg-muted/20">
@@ -67,47 +94,52 @@ export default function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register("email")}
+                  disabled={loading}
                 />
+                {errors.email && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto text-xs"
+                  >
                     Forgot password?
                   </Button>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register("password")}
+                  disabled={loading}
                 />
+                {errors.password && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-            <div className="text-sm text-center text-muted-foreground">
-              <p>Demo Credentials (pre-filled):</p>
-              <p>Email: useradult@demo.com</p>
-              <p>Password: password123</p>
-            </div>
-          </CardFooter>
         </Card>
       </div>
     </div>
-  )
-} 
+  );
+}
