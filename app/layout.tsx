@@ -1,5 +1,5 @@
 import { metadata } from "./metadata";
-import { ToasterProvider } from "@/components/ToasterProvider";
+import { ClientLayout } from "@/components/client-layout";
 export { metadata };
 import "./globals.css"
 
@@ -9,10 +9,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        {children}
-        <ToasterProvider />
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );
