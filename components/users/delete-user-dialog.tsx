@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { deleteUser } from "@/lib/actions/users"; // Server action
 import { Loader2 } from "lucide-react";
 
@@ -28,48 +28,29 @@ interface DeleteUserDialogProps {
 
 export default function DeleteUserDialog({ userId, userName, triggerButton }: DeleteUserDialogProps) {
   const [confirmationInput, setConfirmationInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false); 
   const router = useRouter();
-  const { toast } = useToast();
+  const toast = useAppToast();
 
   const handleDelete = async () => {
     if (confirmationInput !== userName) {
-      toast({
-        title: "Confirmation Failed",
-        description: "The entered name does not match. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("The entered name does not match. Please try again.");
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const result = await deleteUser(userId);
-      if (result.success) {
-        toast({
-          title: "User Deleted",
-          description: `${userName} has been successfully deleted.`,
-        });
-        setIsOpen(false); 
-        router.push("/users"); 
-        router.refresh(); 
-      } else {
-        toast({
-          title: "Error Deleting User",
-          description: result.message || "An unexpected error occurred.",
-          variant: "destructive",
-        });
+    const result = await toast.handleApiCall(
+      () => deleteUser(userId),
+      {
+        loadingMessage: "Deleting user...",
+        successMessage: `${userName} has been successfully deleted.`,
+        errorMessage: "Failed to delete user. Please try again."
       }
-    } catch (error) {
-      console.error("Deletion error:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred during deletion.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    );
+
+    if (result?.success) {
+      setIsOpen(false);
+      router.push("/users");
+      router.refresh();
     }
   };
 
@@ -77,7 +58,6 @@ export default function DeleteUserDialog({ userId, userName, triggerButton }: De
     setIsOpen(open);
     if (!open) {
       setConfirmationInput(""); // Reset input when dialog closes
-      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -104,17 +84,15 @@ export default function DeleteUserDialog({ userId, userName, triggerButton }: De
             value={confirmationInput}
             onChange={(e) => setConfirmationInput(e.target.value)}
             placeholder={userName}
-            disabled={isLoading}
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading} onClick={() => setIsOpen(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={() => setIsOpen(false)}>Cancel</AlertDialogCancel>
           <Button // Changed from AlertDialogAction to Button for more control over disabled state and loading
             variant="destructive"
             onClick={handleDelete}
-            disabled={confirmationInput !== userName || isLoading}
+            disabled={confirmationInput !== userName}
           >
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Delete User
           </Button>
         </AlertDialogFooter>

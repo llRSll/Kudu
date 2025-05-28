@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "sonner"
+import { ToasterProvider } from "@/components/ToasterProvider"
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
@@ -28,7 +28,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       storageKey="kudu-theme"
     >
       {children}
-      <Toaster richColors />
+      <ToasterProvider />
     </ThemeProvider>
   )
 }

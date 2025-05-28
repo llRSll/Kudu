@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "sonner"
+import { useAppToast } from "@/hooks/use-app-toast"
 
 const notificationFormSchema = z.object({
   email_notifications: z.boolean().default(true),
@@ -36,6 +36,7 @@ const defaultValues: Partial<NotificationFormValues> = {
 
 export function NotificationSettings() {
   const [isLoading, setIsLoading] = useState(false)
+  const toast = useAppToast()
 
   const form = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationFormSchema),

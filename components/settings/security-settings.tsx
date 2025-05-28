@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "sonner"
+import { useAppToast } from "@/hooks/use-app-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Shield } from "lucide-react"
 
@@ -48,6 +48,7 @@ const defaultSecurityValues: Partial<SecurityFormValues> = {
 export function SecuritySettings() {
   const [isPasswordLoading, setIsPasswordLoading] = useState(false)
   const [isSecurityLoading, setIsSecurityLoading] = useState(false)
+  const toast = useAppToast()
 
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),

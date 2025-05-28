@@ -16,13 +16,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { AddPropertyForm } from "@/components/properties/add-property-form";
 import { Property } from "@/components/properties/types";
-import toast from "react-hot-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 // import { fetchProperties } from "@/lib/api/properties"
 
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const toast = useAppToast();
 
   // Load properties from API
   useEffect(() => {
@@ -80,6 +81,9 @@ export default function PropertiesPage() {
         console.error(
           "Cannot connect to Supabase. Please check your connection and credentials."
         );
+        toast.error(
+          "Cannot connect to Supabase. Please check your connection and credentials."
+        );
         return;
       }
 
@@ -112,7 +116,6 @@ export default function PropertiesPage() {
         streetNumber: !isNaN(parseInt(newProperty.streetAddress as string))
           ? parseInt(newProperty.streetAddress as string)
           : "",
-
         streetName: newProperty.streetAddress || null,
         streetType: null, // Not collected in form
         suburb: newProperty.city,
@@ -125,26 +128,29 @@ export default function PropertiesPage() {
         userId: user?.id || null,
       };
 
-      // Format address data for Suupabase
-
-      const propertyId = await createProperty(propertyData);
-
-      if (propertyId) {
-        // If saving was successful, update the ID with the one from the database
-        const propertyWithDbId = {
-          ...newProperty,
-          id: propertyId.id,
-        };
-
-        // Update local state
-        setProperties([...properties, propertyWithDbId]);
-        toast.success("Property added successfully!");
-      } else {
-        console.error("Failed to save property to database");
-        toast.error("Failed to save property to database");
-      }
+      // Add property with toast feedback
+      await toast.handleApiCall(
+        async () => {
+          const propertyId = await createProperty(propertyData);
+          if (propertyId) {
+            const propertyWithDbId = {
+              ...newProperty,
+              id: propertyId.id,
+            };
+            setProperties([...properties, propertyWithDbId]);
+          } else {
+            throw new Error("Failed to save property to database");
+          }
+        },
+        {
+          loadingMessage: "Adding property...",
+          successMessage: "Property added successfully!",
+          errorMessage: "Failed to add property. Please try again.",
+        }
+      );
     } catch (error) {
       console.error("Error adding property:", error);
+      toast.error("Error adding property. Please try again.");
     }
   };
 

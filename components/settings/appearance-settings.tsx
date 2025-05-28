@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "sonner"
+import { useAppToast } from "@/hooks/use-app-toast"
 import { useTheme } from "next-themes"
 import { Laptop, Home } from "lucide-react"
 
@@ -28,6 +28,7 @@ export function AppearanceSettings() {
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
+  const toast = useAppToast()
 
   // Ensure we're mounted before accessing theme
   useEffect(() => {

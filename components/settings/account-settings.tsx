@@ -10,7 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "sonner"
+import { useAppToast } from "@/hooks/use-app-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const accountFormSchema = z.object({
@@ -37,6 +37,7 @@ const defaultValues: Partial<AccountFormValues> = {
 
 export function AccountSettings() {
   const [isLoading, setIsLoading] = useState(false)
+  const toast = useAppToast()
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema),
