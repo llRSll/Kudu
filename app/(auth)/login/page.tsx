@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginSchemaType } from "./Loginschema";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,14 +61,22 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      login({
+      // Build user object for auth context
+      const appUser = {
         id: user.id,
         email: user.email || "",
         first_name: user.user_metadata?.first_name || null,
         surname: user.user_metadata?.last_name || null,
         avatar_url: user.user_metadata?.avatar_url || null,
         role: user.role || "user",
-      });
+      };
+      login(appUser);
+      // Store access token in cookie for server-side auth
+      if (data.session?.access_token) {
+        Cookies.set("sb-access-token", data.session.access_token, {
+          path: "/",
+        });
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("An error occurred during login");

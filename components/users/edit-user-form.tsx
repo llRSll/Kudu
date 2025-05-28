@@ -22,7 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { updateUser } from '@/lib/actions/users';
 import { useState } from "react";
 
@@ -56,8 +56,7 @@ interface EditUserFormProps {
 const statuses = ["ACTIVE", "PENDING", "INACTIVE"];
 
 export default function EditUserForm({ user, allRoles, currentUserRoleIds }: EditUserFormProps) {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const toast = useAppToast();
   
   // Add debug logging
   console.log('Debug - User:', user);
@@ -85,29 +84,18 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     console.log('Debug - Form submitted with data:', data);
-    setIsLoading(true);
     
-    try {
-      // Include the roleIds in the update
-      await updateUser(user.id, {
+    await toast.handleApiCall(
+      () => updateUser(user.id, {
         ...data,
         roleIds: data.roleIds,
-      });
-      
-      toast({
-        title: "User Updated",
-        description: "User details have been successfully updated.",
-      });
-    } catch (error) {
-      console.error("Error updating user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update user. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+      }),
+      {
+        loadingMessage: "Updating user...",
+        successMessage: "User details have been successfully updated.",
+        errorMessage: "Failed to update user. Please try again."
+      }
+    );
   }
 
   return (
@@ -273,8 +261,8 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
             ))}
           </div>
         </div>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
+        <Button type="submit">
+          Save Changes
         </Button>
       </form>
     </Form>

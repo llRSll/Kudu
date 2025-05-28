@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { toast } from "react-hot-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { type User as UserType } from "@/lib/actions/users";
 import { type Role } from "@/lib/drizzle/schema";
 
@@ -55,6 +55,7 @@ interface CreatedUserDetails {
 
 export function AddUserForm({ setOpen }: AddUserFormProps) {
   const router = useRouter();
+  const toast = useAppToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
 
@@ -66,19 +67,29 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const response = await fetch("/api/roles");
-        if (!response.ok) {
-          throw new Error("Failed to fetch roles");
-        }
-        const data = await response.json();
-        setRoles(data.roles || []);
+        await toast.handleApiCall(
+          async () => {
+            const response = await fetch("/api/roles");
+            if (!response.ok) {
+              throw new Error("Failed to fetch roles");
+            }
+            const data = await response.json();
+            setRoles(data.roles || []);
+            return data;
+          },
+          {
+            loadingMessage: "Loading roles...",
+            successMessage: "Roles loaded successfully",
+            errorMessage: "Could not load roles. Please try again.",
+          }
+        );
       } catch (error) {
+        // Error is already handled by the toast service
         console.error("Error fetching roles:", error);
-        toast.error("Could not load roles. Please try again.");
       }
     }
     fetchRoles();
-  }, [toast]);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,19 +113,30 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/users/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const result = await toast.handleApiCall(
+        async () => {
+          const response = await fetch("/api/users/create", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(values),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Failed to create user");
+          }
+
+          return result;
         },
-        body: JSON.stringify(values),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to create user");
-      }
+        {
+          loadingMessage: "Creating user...",
+          successMessage: "User created successfully!",
+          errorMessage: "Failed to create user",
+        }
+      );
 
       setOpen(false);
       form.reset();
@@ -128,11 +150,10 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
           role: newUser.role,
         });
         setShowSuccessModal(true);
-      } else {
-        toast.success("User created. Refreshing list...");
       }
     } catch (err: any) {
-      toast.error(err.message || "An unexpected error occurred.");
+      // Error is already handled by the toast service
+      console.error("Error creating user:", err);
     } finally {
       setIsSubmitting(false);
     }
