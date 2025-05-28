@@ -269,7 +269,7 @@ export function PropertyList({
 
   const filteredProperties = getFilteredProperties();
 
-  console.log("Filtered Properties:", filteredProperties);
+  // console.log("Filtered Properties:", filteredProperties);
 
   // Empty state
   const EmptyState = () => (

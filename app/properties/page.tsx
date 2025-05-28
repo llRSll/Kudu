@@ -19,15 +19,12 @@ import { Property } from "@/components/properties/types";
 import toast from "react-hot-toast";
 // import { fetchProperties } from "@/lib/api/properties"
 
-// Local storage key for properties
-const PROPERTIES_STORAGE_KEY = "kudu_user_properties";
-
 export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  // Load properties from local storage and API
+  // Load properties from API
   useEffect(() => {
     let isMounted = true;
     let loadingTimeout: NodeJS.Timeout;
@@ -35,46 +32,25 @@ export default function PropertiesPage() {
     async function loadData() {
       try {
         setIsLoading(true);
-
-        // Set a timeout to prevent infinite loading state
         loadingTimeout = setTimeout(() => {
           if (isMounted) {
-            console.log("Loading timeout reached, showing empty state");
             setIsLoading(false);
+            toast.error("Loading properties timed out. Please try again.");
           }
         }, 5000); // 5 seconds timeout
 
-        // First, try to load from local storage for immediate display
-        const savedProperties = loadPropertiesFromStorage();
-        if (savedProperties.length > 0 && isMounted) {
-          setProperties(savedProperties);
-        }
-
-        // Then try to load from API for up-to-date data
-        const apiProperties = await fetchProperties();
-
-        // If component still mounted, update state with API data or use saved data
+        // Only fetch from API, do not use local storage
+        const apiProperties = await fetchProperties(user?.id || "");
         if (isMounted) {
-          if (apiProperties.length > 0) {
-            setProperties(apiProperties);
-            // Save to localStorage if we got data from API
-            localStorage.setItem(
-              PROPERTIES_STORAGE_KEY,
-              JSON.stringify(apiProperties)
-            );
-          } else if (savedProperties.length === 0) {
-            // If no data from API and no saved data, use empty array
-            setProperties([]);
-          }
+          setProperties(apiProperties);
           setIsLoading(false);
           clearTimeout(loadingTimeout);
         }
       } catch (error) {
         console.error("Failed to load properties:", error);
-        // Even if there's an error, try loading from local storage
+        toast.error("Failed to load properties. Please try again.");
         if (isMounted) {
-          const savedProperties = loadPropertiesFromStorage();
-          setProperties(savedProperties);
+          setProperties([]);
           setIsLoading(false);
           clearTimeout(loadingTimeout);
         }
@@ -94,21 +70,6 @@ export default function PropertiesPage() {
       if (loadingTimeout) clearTimeout(loadingTimeout);
     };
   }, [user]);
-
-  // Helper function to load properties from localStorage
-  const loadPropertiesFromStorage = (): Property[] => {
-    if (typeof window === "undefined") return [];
-
-    try {
-      const savedData = localStorage.getItem(PROPERTIES_STORAGE_KEY);
-      if (savedData) {
-        return JSON.parse(savedData);
-      }
-    } catch (err) {
-      console.error("Error loading properties from localStorage:", err);
-    }
-    return [];
-  };
 
   // Add a new property and save to Supabase
   const handleAddProperty = async (newProperty: Property) => {
@@ -148,8 +109,8 @@ export default function PropertiesPage() {
           hasSolar: newProperty.hasSolar,
         }),
         unit: newProperty.unit ? Number(newProperty.unit) : null,
-        streetNumber: !isNaN(parseInt(newProperty.streetAddress))
-          ? parseInt(newProperty.streetAddress)
+        streetNumber: !isNaN(parseInt(newProperty.streetAddress as string))
+          ? parseInt(newProperty.streetAddress as string)
           : "",
 
         streetName: newProperty.streetAddress || null,
@@ -161,9 +122,10 @@ export default function PropertiesPage() {
           : null,
         country: newProperty.country,
         updatedAt: new Date().toISOString(),
+        userId: user?.id || null,
       };
 
-      // Format address data for Supabase
+      // Format address data for Suupabase
 
       const propertyId = await createProperty(propertyData);
 
@@ -179,6 +141,7 @@ export default function PropertiesPage() {
         toast.success("Property added successfully!");
       } else {
         console.error("Failed to save property to database");
+        toast.error("Failed to save property to database");
       }
     } catch (error) {
       console.error("Error adding property:", error);

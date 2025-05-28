@@ -327,10 +327,14 @@ export async function testSupabaseConnection(): Promise<boolean> {
 }
 
 export async function createProperty(
-  property: Omit<Property, "Id">
+  property: Omit<Property, "Id"> & { userId?: string }
   // address?: Omit<PropertyAddress, "Id" | "Property_Id">
 ): Promise<{ id: string | null; error?: string }> {
   try {
+    if (!property.userId) {
+      console.error("No userId provided to createProperty");
+      return { id: null, error: "Please login or provide a valid user ID." };
+    }
     console.log(
       "Attempting to create property with data:",
       JSON.stringify(property, null, 2)
@@ -368,15 +372,14 @@ export async function createProperty(
       postcode: property.postcode,
       country: property.country,
       updated_at: new Date().toISOString(),
+      user_id: property.userId, // Add user_id to payload
     };
 
-
     console.log("Payload for DB insert:", JSON.stringify(payload, null, 2));
-    debugger
     // Use nested insert if address is provided, otherwise simple insert
     const { data, error } = await supabase
       .from("properties")
-      .insert([payload], { returning: "representation" });
+      .insert([payload], { defaultToNull: true }); // Remove 'returning', use 'defaultToNull' for supabase-js v2
 
     if (error) {
       console.error("Error creating property (with address):", error);
@@ -394,21 +397,27 @@ export async function createProperty(
  * Fetch all properties from the "properties" table in Supabase.
  * Returns an array of Property objects or an empty array on error.
  */
-export async function fetchProperties(): Promise<Property[]> {
+export async function fetchProperties(userId: string): Promise<Property[]> {
   try {
-    const { data, error } = await supabase.from("properties").select("*");
+    if (!userId) {
+      console.error("No userId provided to fetchProperties");
+      return [];
+    }
+    const { data, error } = await supabase
+      .from("properties")
+      .select("*")
+      .eq("user_id", userId);
+
     if (error) {
       console.error("Error fetching properties:", error);
       return [];
     }
 
     if (!data || data.length === 0) {
-      console.log("No properties found.");
+      console.log("No properties found for user:", userId);
       return [];
     }
 
-    // Optionally, transform data to match your Property interface if needed
-    // For now, we assume the DB columns match the Property interface
     return data as Property[];
   } catch (err) {
     console.error("Unexpected error in fetchProperties:", err);
