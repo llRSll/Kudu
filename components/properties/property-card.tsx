@@ -88,15 +88,15 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-md bg-muted p-2">
             <p className="text-xs text-muted-foreground">Value</p>
-            <p className="font-medium">${property.value.toLocaleString()}</p>
+            <p className="font-medium">${(property.value ?? 0).toLocaleString()}</p>
           </div>
           <div className="rounded-md bg-muted p-2">
             <p className="text-xs text-muted-foreground">Monthly Income</p>
-            <p className="font-medium">${property.income.toLocaleString()}</p>
+            <p className="font-medium">${(property.income ?? property.monthlyIncome ?? 0).toLocaleString()}</p>
           </div>
           <div className="rounded-md bg-muted p-2">
             <p className="text-xs text-muted-foreground">Monthly Expenses</p>
-            <p className="font-medium">${property.expenses.toLocaleString()}</p>
+            <p className="font-medium">${(property.expenses ?? 0).toLocaleString()}</p>
           </div>
           <div className="rounded-md bg-muted p-2">
             <p className="text-xs text-muted-foreground">Type</p>
@@ -105,7 +105,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         </div>
 
         {/* Occupancy */}
-        {showOccupancy && (
+        {showOccupancy && property.occupancy !== undefined && (
           <div className="mt-4">
             <div className="flex items-center justify-between">
               <p className="text-sm">Occupancy</p>

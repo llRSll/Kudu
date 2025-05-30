@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building, DollarSign, TrendingUp, Calendar, Download, Filter, ChevronLeft, ChevronRight } from "lucide-react"
-import { Property } from "./property-list"
+import { Property } from "./types"
 import { useState } from "react"
 import { format } from "date-fns"
 import { DateRange } from "react-day-picker"
@@ -590,7 +590,7 @@ export function PortfolioSummary({ properties }: { properties: Property[] }) {
   const [dateRange, setDateRange] = useState<DateRangeValue | undefined>(undefined)
   
   const totalProperties = properties.length
-  const monthlyIncome = properties.reduce((sum: number, prop: Property) => sum + prop.monthly_income, 0)
+  const monthlyIncome = properties.reduce((sum: number, prop: Property) => sum + (prop.monthlyIncome || 0), 0)
   const activeProperties = properties.filter((p: Property) => p.status === "active").length
   
   // Default value or calculated from properties if available
