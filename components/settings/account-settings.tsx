@@ -34,7 +34,7 @@ import {
   getUserSettings,
   updateUserAvatar,
   removeUserAvatar,
-} from "@/lib/actions/settings";
+} from "@/app/actions/settings";
 import {
   accountSettingsSchema,
   type AccountSettingsData,
@@ -95,7 +95,7 @@ export function AccountSettings() {
     fetchUserSettings();
   }, [user?.id, form, toast, userSettings?.id]);
 
-  
+
   async function onSubmit(data: AccountSettingsData) {
     if (!user?.id) {
       toast.error("User not authenticated");
@@ -106,7 +106,6 @@ export function AccountSettings() {
 
     try {
       const result = await updateAccountSettings(user.id, data);
-      debugger;
       if (result.success) {
         console.log("Account settings updated successfully");
         // toast.success("Account settings updated successfully")
