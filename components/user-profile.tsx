@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, Settings, User } from "lucide-react"
 import {
   DropdownMenu,
@@ -34,7 +34,8 @@ export function UserProfile() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            {/* Since User type has no avatarUrl, we directly use Fallback */}
+            {/* Use avatar from Supabase if available */}
+            {user.avatar_url && <AvatarImage src={user.avatar_url} alt={user.name} />}
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
         </Button>
@@ -65,4 +66,4 @@ export function UserProfile() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-} 
+}

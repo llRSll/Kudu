@@ -12,6 +12,9 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 
+// Import all types from the types directory
+import * as Types from './types';
+
 // 1) USERS
 export const Users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -361,302 +364,31 @@ export const TradeJournal = pgTable("trade_journal", {
   updated_at: timestamp("updated_at", { withTimezone: true }),
 });
 
-// --- Types for Drizzle Tables ---
-
-export interface User {
-  id: string;
-  email: string;
-  first_name?: string;
-  middle_initial?: string;
-  surname?: string;
-  full_name?: string;
-  phone_number?: string;
-  dob?: string; // ISO date
-  tax_file_number?: string;
-  avatar_url?: string;
-  preferences?: unknown;
-  status?: string;
-  role?: string;
-  created_at?: Date;
-  updated_at?: Date;
-  last_login?: Date;
-}
-
-export interface Family {
-  id: string;
-  name?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface FamilyRole {
-  id: string;
-  name: string;
-  description?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface FamilyMember {
-  id: string;
-  user_id: string;
-  family_id: string;
-  family_role_id?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface Role {
-  id: string;
-  name?: string;
-  description?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface Permission {
-  id: string;
-  name?: string;
-  description?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface RolePermission {
-  role_id: string;
-  permission_id: string;
-  created_at?: Date;
-}
-
-export interface UserRole {
-  user_id: string;
-  role_id: string;
-  assigned_at?: Date;
-}
-
-export interface Entity {
-  id: string;
-  name?: string;
-  description?: string;
-  type?: string;
-  user_id?: string;
-  family_id?: string;
-  abn?: string;
-  acn?: string;
-  status?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface EntityRelationship {
-  id: string;
-  parent_entity_id?: string;
-  child_entity_id?: string;
-  relationship_type?: string;
-  ownership_percentage?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface Investment {
-  id: string;
-  investment_type?: string;
-  user_id?: string;
-  family_id?: string;
-  entity_id?: string;
-  status?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface Property {
-  id: string;
-  name?: string;
-  entity_id?: string;
-  user_id?: string;
-  investment_id?: string;
-  street_number?: string;
-  street_name?: string;
-  suburb?: string;
-  postcode?: string;
-  state?: string;
-  country?: string;
-  land_price?: string;
-  build_price?: string;
-  purchase_date?: string;
-  current_valuation?: string;
-  last_valuation_date?: Date;
-  area?: string;
-  bedrooms?: string;
-  bathrooms?: string;
-  parking?: string;
-  has_pool?: boolean;
-  monthly_income?: string;
-  property_purchase_price?: string;
-  year_built?: number;
-  type?: string;
-  amenities?: unknown;
-  created_at?: Date;
-  updated_at?: Date;
-  status?: string; // Added status field
-  description?: string; // Added description field
-}
-
-export interface Document {
-  id: string;
-  name?: string;
-  type?: string;
-  url?: string;
-  file_size?: string;
-  description?: string;
-  metadata?: unknown;
-  property_id?: string;
-  entity_id?: string;
-  investment_id?: string;
-  family_id?: string;
-  uploaded_by?: string;
-  created_at?: Date;
-  updated_at?: Date;
-  last_modified?: Date;
-  version?: string;
-}
-
-export interface CashFlow {
-  id: string;
-  amount?: string;
-  debit_credit?: string;
-  transaction_type?: string;
-  description?: string;
-  timestamp?: Date;
-  user_id?: string;
-  family_id?: string;
-  entity_id?: string;
-  investment_id?: string;
-  property_id?: string;
-}
-
-export interface CreditFacility {
-  id: string;
-  name?: string;
-  type?: string;
-  limit_amount?: string;
-  interest_rate_type?: string;
-  base_rate?: string;
-  margin_rate?: string;
-  start_date?: string;
-  end_date?: string;
-  payment_frequency?: string;
-  entity_id?: string;
-  status?: string;
-  description?: string;
-  loan_type?: string;
-  repayment_type?: string;
-  interest_only_period?: number;
-  pi_period?: number;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface CreditFacilityDrawdown {
-  id: string;
-  facility_id?: string;
-  amount?: string;
-  date?: string;
-  purpose?: string;
-  property_id?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface CreditFacilityProperty {
-  id: string;
-  facility_id?: string;
-  property_id?: string;
-  purpose?: string;
-  amount_allocated?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface CreditFacilityRepayment {
-  id: string;
-  facility_id?: string;
-  amount?: string;
-  date?: string;
-  type?: string;
-  interest_amount?: string;
-  principal_amount?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface CreditFacilitySecurity {
-  id: string;
-  facility_id?: string;
-  type?: string;
-  property_id?: string;
-  description?: string;
-  value?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface OffsetAccount {
-  id: string;
-  name?: string;
-  balance?: string;
-  entity_id?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface FacilityOffsetAccount {
-  id: string;
-  facility_id?: string;
-  offset_account_id?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface BrokerAccount {
-  id: string;
-  user_id?: string;
-  broker_name?: string;
-  account_type?: string;
-  account_number?: string;
-  api_key?: string;
-  api_secret?: string;
-  is_demo?: boolean;
-  balance?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface Credential {
-  id: string;
-  user_id?: string;
-  service_name?: string;
-  username?: string;
-  password?: string;
-  notes?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
-
-export interface TradeJournalEntry {
-  id: string;
-  user_id?: string;
-  date?: string;
-  time?: string;
-  symbol?: string;
-  type?: string;
-  entry_price?: string;
-  stop_loss?: string;
-  close_price?: string;
-  pnl?: string;
-  methodology?: string;
-  notes?: string;
-  screenshot_url?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
+// Type definitions are now imported from ./types directory
+// Re-export all types for backward compatibility
+export type {
+  User,
+  Family,
+  FamilyRole,
+  FamilyMember,
+  Role,
+  Permission,
+  RolePermission,
+  UserRole,
+  Entity,
+  EntityRelationship,
+  Investment,
+  Property,
+  Document,
+  CashFlow,
+  CreditFacility,
+  CreditFacilityDrawdown,
+  CreditFacilityProperty,
+  CreditFacilityRepayment,
+  CreditFacilitySecurity,
+  OffsetAccount,
+  FacilityOffsetAccount,
+  BrokerAccount,
+  Credential,
+  TradeJournalEntry
+} from './types';

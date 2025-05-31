@@ -2,6 +2,8 @@ import { Property } from "@/components/properties/types";
 import { supabase } from "@/lib/supabase";
 import { count } from "console";
 import { v4 as uuidv4 } from "uuid";
+import { Property as DrizzleProperty } from '@/lib/drizzle/types/property-types';
+import { adaptDrizzlePropertyToComponentProperty } from '@/lib/utils/type-adapters';
 
 // Define database types that match the Supabase schema
 export interface InvestmentProperty {
@@ -327,8 +329,7 @@ export async function testSupabaseConnection(): Promise<boolean> {
 }
 
 export async function createProperty(
-  property: Omit<Property, "Id"> & { userId?: string }
-  // address?: Omit<PropertyAddress, "Id" | "Property_Id">
+  property: Omit<Property, "id"> & { userId?: string }
 ): Promise<{ id: string | null; error?: string }> {
   try {
     if (!property.userId) {
@@ -344,42 +345,41 @@ export async function createProperty(
     const entity_id = "580a11fa-a8ca-4f86-a69c-a9daf4224d93";
     const investment_id = "b4255abe-fd83-41d0-b8a0-c86a8df42594";
 
-    // Prepare the nested payload if address is provided
-    let payload: any = {
+    // Convert component property to drizzle property format
+    const drizzleProperty: DrizzleProperty = {
       id: propertyId,
       investment_id: investment_id,
       name: property.name,
       type: property.type,
       status: property.status,
-      land_price: property.landPrice,
-      build_price: property.buildPrice,
+      land_price: property.landPrice?.toString(),
+      build_price: property.buildPrice?.toString(),
       purchase_date: property.purchaseDate,
-      current_valuation: property.currentValuation || 0,
-      last_valuation_date:
-        property.lastValuationDate || new Date().toISOString(),
-      area: property.area || 0,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      parking: property.parking,
+      current_valuation: property.currentValuation?.toString() || '0',
+      last_valuation_date: property.lastValuationDate || new Date(),
+      area: property.area?.toString() || '0',
+      bedrooms: property.bedrooms?.toString(),
+      bathrooms: property.bathrooms?.toString(),
+      parking: property.parking?.toString(),
       has_pool: property.hasPool || false,
       amenities: property.amenities,
       entity_id: entity_id,
-      unit: property.unit,
       street_number: property.streetNumber,
       street_name: property.streetName,
       suburb: property.suburb,
-      state: property.state,
       postcode: property.postcode,
+      state: property.state,
       country: property.country,
-      updated_at: new Date().toISOString(),
-      user_id: property.userId, // Add user_id to payload
+      updated_at: new Date(),
+      user_id: property.userId,
+      year_built: property.yearBuilt,
     };
 
-    console.log("Payload for DB insert:", JSON.stringify(payload, null, 2));
+    console.log("Payload for DB insert:", JSON.stringify(drizzleProperty, null, 2));
     // Use nested insert if address is provided, otherwise simple insert
     const { data, error } = await supabase
       .from("properties")
-      .insert([payload], { defaultToNull: true }); // Remove 'returning', use 'defaultToNull' for supabase-js v2
+      .insert([drizzleProperty as any], { defaultToNull: true }); // Remove 'returning', use 'defaultToNull' for supabase-js v2
 
     if (error) {
       console.error("Error creating property (with address):", error);
@@ -418,7 +418,8 @@ export async function fetchProperties(userId: string): Promise<Property[]> {
       return [];
     }
 
-    return data as Property[];
+    // Use type adapter to convert DrizzleProperty to Property
+    return data.map((item: any) => adaptDrizzlePropertyToComponentProperty(item as DrizzleProperty));
   } catch (err) {
     console.error("Unexpected error in fetchProperties:", err);
     return [];
@@ -450,7 +451,9 @@ export async function fetchPropertyById(id: string): Promise<Property | null> {
       console.warn(`No data returned for property id ${id}.`);
       return null;
     }
-    return data as unknown as Property;
+    
+    // Use type adapter to convert from DrizzleProperty to Property
+    return adaptDrizzlePropertyToComponentProperty(data as unknown as DrizzleProperty);
   } catch (error: any) {
     console.error("Unexpected error in fetchPropertyById:", error);
     return null;

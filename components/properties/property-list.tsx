@@ -58,8 +58,8 @@ import { Property } from "./types";
 // }
 
 // Status badge configuration
-const getStatusBadge = (status: Property["status"]) => {
-  const badges = {
+const getStatusBadge = (status?: string) => {
+  const badges: Record<string, { variant: string, text: string }> = {
     prospect: { variant: "outline", text: "Prospect" },
     "under-contract": { variant: "secondary", text: "Under Contract" },
     active: { variant: "default", text: "Active" },
@@ -68,7 +68,7 @@ const getStatusBadge = (status: Property["status"]) => {
     "pending-sale": { variant: "outline", text: "Pending Sale" },
     archived: { variant: "outline", text: "Archived" },
   };
-  return badges[status] || badges.active;
+  return status && status in badges ? badges[status] : badges.active;
 };
 
 // Property Action Menu Component
@@ -124,36 +124,40 @@ const PropertyStats = ({ property }: { property: Property }) => (
     <div className="rounded-md bg-muted p-2">
       <p className="text-xs text-muted-foreground">Value</p>
       <p className="font-medium">
-        ${property.currentValuation?.toLocaleString()}
+        ${(property.value ?? property.currentValuation ?? 0).toLocaleString()}
       </p>
     </div>
     <div className="rounded-md bg-muted p-2">
       <p className="text-xs text-muted-foreground">Monthly Income</p>
       <p className="font-medium">
-        ${property.monthly_income?.toLocaleString()}
+        ${(property.income ?? property.monthlyIncome ?? 0).toLocaleString()}
       </p>
     </div>
     <div className="rounded-md bg-muted p-2">
       <p className="text-xs text-muted-foreground">Monthly Expenses</p>
-      <p className="font-medium">${property.expenses?.toLocaleString()}</p>
+      <p className="font-medium">${(property.expenses ?? 0).toLocaleString()}</p>
     </div>
     <div className="rounded-md bg-muted p-2">
       <p className="text-xs text-muted-foreground">Type</p>
-      <p className="font-medium">{property.type}</p>
+      <p className="font-medium">{property.type || 'N/A'}</p>
     </div>
   </div>
 );
 
 // Property Occupancy Component
-const PropertyOccupancy = ({ occupancy }: { occupancy: number }) => (
-  <div className="mt-4">
-    <div className="flex items-center justify-between">
-      <p className="text-sm">Occupancy</p>
-      <p className="text-sm font-medium">{occupancy}%</p>
+const PropertyOccupancy = ({ occupancy }: { occupancy?: number }) => {
+  if (occupancy === undefined) return null;
+  
+  return (
+    <div className="mt-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm">Occupancy</p>
+        <p className="text-sm font-medium">{occupancy}%</p>
+      </div>
+      <Progress value={occupancy} className="mt-2" />
     </div>
-    <Progress value={occupancy} className="mt-2" />
-  </div>
-);
+  );
+};
 
 // Property Card Component
 function PropertyCard({ property }: { property: Property }) {
@@ -180,14 +184,12 @@ function PropertyCard({ property }: { property: Property }) {
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-xl">{property.name}</CardTitle>
-            {property.street_Name
-              ? property.street_Name
-              : property.street_name &&
+            {property.streetName &&
                 property.state &&
                 property.country && (
                   <CardDescription className="flex items-center mt-1">
                     <MapPin className="mr-1 h-3 w-3" />
-                    {`${property.street_name}, ${property.state} ${property.country}`}
+                    {`${property.streetName}, ${property.state} ${property.country}`}
                   </CardDescription>
                 )}
 
@@ -637,13 +639,13 @@ function PropertyListItem({ property }: { property: Property }) {
               <div>
                 <p className="text-sm text-muted-foreground">Value</p>
                 <p className="font-medium">
-                  ${property.value.toLocaleString()}
+                  ${(property.value ?? property.currentValuation ?? 0).toLocaleString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Income</p>
                 <p className="font-medium">
-                  ${property.income.toLocaleString()}
+                  ${(property.income ?? property.monthlyIncome ?? 0).toLocaleString()}
                 </p>
               </div>
               <div>
@@ -651,7 +653,7 @@ function PropertyListItem({ property }: { property: Property }) {
                   Monthly Expenses
                 </p>
                 <p className="font-medium">
-                  ${property.expenses.toLocaleString()}
+                  ${(property.expenses ?? 0).toLocaleString()}
                 </p>
               </div>
               <div>
