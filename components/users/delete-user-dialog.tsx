@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppToast } from "@/hooks/use-app-toast";
+import toast from "react-hot-toast";
 import { deleteUser } from "@/lib/actions/users"; // Server action
 import { Loader2 } from "lucide-react";
 
@@ -30,7 +30,6 @@ export default function DeleteUserDialog({ userId, userName, triggerButton }: De
   const [confirmationInput, setConfirmationInput] = useState("");
   const [isOpen, setIsOpen] = useState(false); 
   const router = useRouter();
-  const toast = useAppToast();
 
   const handleDelete = async () => {
     if (confirmationInput !== userName) {
@@ -38,19 +37,24 @@ export default function DeleteUserDialog({ userId, userName, triggerButton }: De
       return;
     }
 
-    const result = await toast.handleApiCall(
-      () => deleteUser(userId),
-      {
-        loadingMessage: "Deleting user...",
-        successMessage: `${userName} has been successfully deleted.`,
-        errorMessage: "Failed to delete user. Please try again."
+    const loadingToast = toast.loading("Deleting user...");
+    try {
+      const result = await deleteUser(userId);
+      
+      toast.dismiss(loadingToast);
+      
+      if (result?.success) {
+        toast.success(`${userName} has been successfully deleted.`);
+        setIsOpen(false);
+        router.push("/users");
+        router.refresh();
+      } else {
+        toast.error(result?.message || "Failed to delete user. Please try again.");
       }
-    );
-
-    if (result?.success) {
-      setIsOpen(false);
-      router.push("/users");
-      router.refresh();
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to delete user. Please try again.");
+      console.error("Error deleting user:", error);
     }
   };
 

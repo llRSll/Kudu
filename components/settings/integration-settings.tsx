@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
-import { useAppToast } from "@/hooks/use-app-toast"
+import toast from "react-hot-toast"
 import { Badge } from "@/components/ui/badge"
 import { Check, ExternalLink, X } from "lucide-react"
 
@@ -35,7 +35,6 @@ const defaultValues: Partial<IntegrationFormValues> = {
 
 export function IntegrationSettings() {
   const [isLoading, setIsLoading] = useState(false)
-  const toast = useAppToast()
 
   const form = useForm<IntegrationFormValues>({
     resolver: zodResolver(integrationFormSchema),

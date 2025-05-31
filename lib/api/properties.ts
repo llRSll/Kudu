@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { Property } from '@/components/properties/property-list'
+import { Property } from '@/components/properties/types'
 
 // Interfaces from property-detail.tsx that we need to reproduce
 interface Tenant {

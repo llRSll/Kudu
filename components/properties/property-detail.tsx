@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Property } from "./property-list"
+import { Property } from "./types"
 import { PropertyWithAddress } from "@/lib/api/properties"
 import { FilterControls, BarChart, DateRangeSelector } from "./portfolio-summary"
 import {
@@ -32,9 +32,10 @@ import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 
 // Extend Property interface for the detail view
-interface PropertyDetail extends Property {
+interface PropertyDetail {
+  id: string
   address?: string
-  purchaseDate?: Date
+  purchaseDate?: string | Date
   tenants?: Tenant[]
   maintenanceItems?: MaintenanceItem[]
   documents?: Document[]
@@ -46,9 +47,19 @@ interface PropertyDetail extends Property {
   bedrooms?: number
   bathrooms?: number
   description?: string
-  amenities?: string[]
+  amenities?: string[] | unknown
   upcomingCashFlows?: UpcomingCashFlow[]
   valuationHistory?: ValuationRecord[]
+  // Include all other properties from Property interface
+  name?: string
+  location?: string
+  value?: number
+  income?: number
+  expenses?: number
+  occupancy?: number
+  status?: string
+  image?: string
+  type?: string
   developmentStages?: DevelopmentStage[]
 }
 
@@ -126,7 +137,7 @@ interface DocumentFolder {
 
 // Sample data for a property detail
 const samplePropertyDetail: PropertyDetail = {
-  id: 1,
+  id: "1",
   name: "123 Main Street",
   type: "Commercial",
   location: "New York, NY",
@@ -483,9 +494,11 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(1); // Default to first folder
 
-  // Calculate net income
-  const netIncome = property.income - property.expenses;
-  const netIncomePercentage = Math.round((netIncome / property.income) * 100);
+  // Calculate net income with null safety
+  const income = property.income ?? 0;
+  const expenses = property.expenses ?? 0;
+  const netIncome = income - expenses;
+  const netIncomePercentage = income > 0 ? Math.round((netIncome / income) * 100) : 0;
   
   // Go back to property list
   const handleBack = () => {
@@ -596,15 +609,15 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
                   <div>
                     <div className="text-sm text-muted-foreground">Value</div>
-                    <div className="font-medium text-lg">${property.value.toLocaleString()}</div>
+                    <div className="font-medium text-lg">${(property.value ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Monthly Income</div>
-                    <div className="font-medium text-lg">${property.income.toLocaleString()}</div>
+                    <div className="font-medium text-lg">${(property.income ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Monthly Expenses</div>
-                    <div className="font-medium text-lg">${property.expenses.toLocaleString()}</div>
+                    <div className="font-medium text-lg">${(property.expenses ?? 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div className="text-sm text-muted-foreground">Purchase Date</div>
@@ -638,13 +651,13 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                       <div className="space-y-2">
                         <div className="text-sm text-muted-foreground">Monthly Income</div>
                         <div className="text-2xl font-bold text-green-600">
-                          ${property.income.toLocaleString()}
+                          ${(property.income ?? 0).toLocaleString()}
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="text-sm text-muted-foreground">Monthly Expenses</div>
                         <div className="text-2xl font-bold text-red-600">
-                          ${property.expenses.toLocaleString()}
+                          ${(property.expenses ?? 0).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -744,11 +757,11 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 </div>
               )}
               
-              {property.amenities && property.amenities.length > 0 && (
+              {property.amenities && Array.isArray(property.amenities) && property.amenities.length > 0 && (
                 <div className="mt-4">
                   <div className="text-sm text-muted-foreground mb-2">Amenities</div>
                   <div className="flex flex-wrap gap-2">
-                    {property.amenities.map((amenity, index) => (
+                    {property.amenities.map((amenity: string, index: number) => (
                       <Badge key={index} variant="outline">{amenity}</Badge>
                     ))}
                   </div>
@@ -863,19 +876,19 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
               <CardContent className="space-y-4">
                 <div>
                   <div className="text-sm text-muted-foreground">Property Value</div>
-                  <div className="text-xl font-bold">${property.value.toLocaleString()}</div>
+                  <div className="text-xl font-bold">${(property.value ?? 0).toLocaleString()}</div>
                 </div>
                 <Separator />
                 <div>
                   <div className="text-sm text-muted-foreground">Annual Income</div>
                   <div className="text-lg font-medium text-green-600">
-                    ${(property.income * 12).toLocaleString()}
+                    ${((property.income ?? 0) * 12).toLocaleString()}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Annual Expenses</div>
                   <div className="text-lg font-medium text-red-600">
-                    ${(property.expenses * 12).toLocaleString()}
+                    ${((property.expenses ?? 0) * 12).toLocaleString()}
                   </div>
                 </div>
                 <div>
@@ -888,7 +901,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 <div>
                   <div className="text-sm text-muted-foreground">Cap Rate</div>
                   <div className="text-xl font-bold">
-                    {((netIncome * 12 / property.value) * 100).toFixed(2)}%
+                    {property.value ? ((netIncome * 12 / property.value) * 100).toFixed(2) : "N/A"}%
                   </div>
                 </div>
               </CardContent>
