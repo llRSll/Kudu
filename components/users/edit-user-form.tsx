@@ -22,7 +22,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useAppToast } from "@/hooks/use-app-toast";
+import toast from "react-hot-toast";
 import { updateUser } from '@/lib/actions/users';
 import { useState } from "react";
 
@@ -56,7 +56,6 @@ interface EditUserFormProps {
 const statuses = ["ACTIVE", "PENDING", "INACTIVE"];
 
 export default function EditUserForm({ user, allRoles, currentUserRoleIds }: EditUserFormProps) {
-  const toast = useAppToast();
   
   // Add debug logging
   console.log('Debug - User:', user);
@@ -85,17 +84,25 @@ export default function EditUserForm({ user, allRoles, currentUserRoleIds }: Edi
   async function onSubmit(data: z.infer<typeof formSchema>) {
     console.log('Debug - Form submitted with data:', data);
     
-    await toast.handleApiCall(
-      () => updateUser(user.id, {
+    const loadingToast = toast.loading("Updating user...");
+    try {
+      const result = await updateUser(user.id, {
         ...data,
         roleIds: data.roleIds,
-      }),
-      {
-        loadingMessage: "Updating user...",
-        successMessage: "User details have been successfully updated.",
-        errorMessage: "Failed to update user. Please try again."
+      });
+      
+      toast.dismiss(loadingToast);
+      
+      if (result.success) {
+        toast.success("User details have been successfully updated.");
+      } else {
+        toast.error(result.message || "Failed to update user. Please try again.");
       }
-    );
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("Failed to update user. Please try again.");
+      console.error("Error updating user:", error);
+    }
   }
 
   return (

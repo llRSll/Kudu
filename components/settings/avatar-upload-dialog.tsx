@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Upload, X, Camera } from "lucide-react"
 import { validateImageFile, createImagePreview, compressImage } from "@/lib/utils/image-utils"
-import { useAppToast } from "@/hooks/use-app-toast"
+import toast from "react-hot-toast"
 
 interface AvatarUploadDialogProps {
   isOpen: boolean
@@ -35,7 +35,6 @@ export function AvatarUploadDialog({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isDragOver, setIsDragOver] = useState(false)
-  const toast = useAppToast()
 
   const handleFileSelect = async (file: File) => {
     // Validate the file

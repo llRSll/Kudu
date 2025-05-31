@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useAppToast } from "@/hooks/use-app-toast";
+import toast from "react-hot-toast";
 import { type User as UserType } from "@/lib/actions/users";
 import { type Role } from "@/lib/drizzle/schema";
 
@@ -55,7 +55,6 @@ interface CreatedUserDetails {
 
 export function AddUserForm({ setOpen }: AddUserFormProps) {
   const router = useRouter();
-  const toast = useAppToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
 
@@ -66,25 +65,24 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
 
   useEffect(() => {
     async function fetchRoles() {
+      const loadingToast = toast.loading("Loading roles...");
       try {
-        await toast.handleApiCall(
-          async () => {
-            const response = await fetch("/api/roles");
-            if (!response.ok) {
-              throw new Error("Failed to fetch roles");
-            }
-            const data = await response.json();
-            setRoles(data.roles || []);
-            return data;
-          },
-          {
-            loadingMessage: "Loading roles...",
-            successMessage: "Roles loaded successfully",
-            errorMessage: "Could not load roles. Please try again.",
-          }
-        );
+        const response = await fetch("/api/roles");
+        
+        toast.dismiss(loadingToast);
+        
+        if (!response.ok) {
+          toast.error("Could not load roles. Please try again.");
+          throw new Error("Failed to fetch roles");
+        }
+        
+        const data = await response.json();
+        setRoles(data.roles || []);
+        toast.success("Roles loaded successfully");
+        return data;
       } catch (error) {
-        // Error is already handled by the toast service
+        toast.dismiss(loadingToast);
+        toast.error("Could not load roles. Please try again.");
         console.error("Error fetching roles:", error);
       }
     }
@@ -113,43 +111,47 @@ export function AddUserForm({ setOpen }: AddUserFormProps) {
     setIsSubmitting(true);
 
     try {
-      const result = await toast.handleApiCall(
-        async () => {
-          const response = await fetch("/api/users/create", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(values),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Failed to create user");
-          }
-
-          return result;
-        },
-        {
-          loadingMessage: "Creating user...",
-          successMessage: "User created successfully!",
-          errorMessage: "Failed to create user",
-        }
-      );
-
-      setOpen(false);
-      form.reset();
-      router.refresh();
-
-      if (result.user) {
-        const newUser: UserType = result.user;
-        setCreatedUser({
-          id: newUser.id,
-          full_name: newUser.full_name,
-          role: newUser.role,
+      const loadingToast = toast.loading("Creating user...");
+      
+      try {
+        const response = await fetch("/api/users/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
         });
-        setShowSuccessModal(true);
+
+        const result = await response.json();
+
+        toast.dismiss(loadingToast);
+        
+        if (!response.ok) {
+          toast.error(result.error || "Failed to create user");
+          throw new Error(result.error || "Failed to create user");
+        }
+
+        toast.success("User created successfully!");
+        
+        setOpen(false);
+        form.reset();
+        router.refresh();
+
+        if (result.user) {
+          const newUser: UserType = result.user;
+          setCreatedUser({
+            id: newUser.id,
+            full_name: newUser.full_name,
+            role: newUser.role,
+          });
+          setShowSuccessModal(true);
+        }
+        
+        return result;
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        toast.error("Failed to create user");
+        throw error;
       }
     } catch (err: any) {
       // Error is already handled by the toast service

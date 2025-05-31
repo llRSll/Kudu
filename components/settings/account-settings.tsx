@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast"; // Replace custom hook with direct import
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppToast } from "@/hooks/use-app-toast";
+// Remove the useAppToast import
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
 import { validateImageFile, compressImage } from "@/lib/utils/image-utils";
@@ -45,7 +46,6 @@ export function AccountSettings() {
   const [userSettings, setUserSettings] = useState<any>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showAvatarDialog, setShowAvatarDialog] = useState(false);
-  const toast = useAppToast();
   const { user } = useAuth();
 
   const form = useForm<AccountSettingsData>({
