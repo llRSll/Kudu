@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-import { randomUUID } from 'crypto'
 import { IMAGE_CONFIG } from '@/lib/utils/image-utils'
+import { uploadAvatarToStorage } from '@/lib/utils/supabase-storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,32 +31,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique filename
-    const fileExtension = file.name.split('.').pop()
-    const uniqueFilename = `${randomUUID()}.${fileExtension}`
-
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Ensure uploads directory exists
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'avatars')
-    
-    try {
-      await writeFile(join(uploadsDir, uniqueFilename), buffer)
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        // Directory doesn't exist, create it
-        const { mkdir } = await import('fs/promises')
-        await mkdir(uploadsDir, { recursive: true })
-        await writeFile(join(uploadsDir, uniqueFilename), buffer)
-      } else {
-        throw error
-      }
-    }
-
-    // Return the URL path for the uploaded file
-    const avatarUrl = `/uploads/avatars/${uniqueFilename}`
+    // Upload to Supabase Storage
+    const avatarUrl = await uploadAvatarToStorage(buffer, file.name)
 
     return NextResponse.json({
       success: true,

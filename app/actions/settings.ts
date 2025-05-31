@@ -258,19 +258,13 @@ export async function updateUserAvatar(userId: string, avatarUrl: string) {
       .where(eq(Users.id, userId))
       .returning();
 
-    // Clean up old avatar file if it exists
+    // Clean up old avatar from Supabase if it exists
     if (currentUser[0]?.avatar_url && currentUser[0].avatar_url !== avatarUrl) {
-      // Delete old avatar file
       try {
-        const { unlink } = await import('fs/promises');
-        const { join } = await import('path');
-        const filename = currentUser[0].avatar_url.split('/').pop();
-        if (filename) {
-          const filePath = join(process.cwd(), 'public', 'uploads', 'avatars', filename);
-          await unlink(filePath);
-        }
+        const { deleteAvatarFromStorage } = await import('@/lib/utils/supabase-storage');
+        await deleteAvatarFromStorage(currentUser[0].avatar_url);
       } catch (error) {
-        console.warn('Failed to delete old avatar file:', error);
+        console.warn('Failed to delete old avatar from storage:', error);
       }
     }
 
@@ -287,7 +281,7 @@ export async function updateUserAvatar(userId: string, avatarUrl: string) {
 // Action to remove avatar
 export async function removeUserAvatar(userId: string) {
   try {
-    // Get current avatar URL to clean up file
+    // Get current avatar URL to clean up file in Supabase storage
     const currentUser = await db
       .select({ avatar_url: Users.avatar_url })
       .from(Users)
@@ -303,19 +297,13 @@ export async function removeUserAvatar(userId: string) {
       .where(eq(Users.id, userId))
       .returning();
 
-    // Clean up avatar file if it exists
+    // Clean up avatar from Supabase storage if it exists
     if (currentUser[0]?.avatar_url) {
-      // Delete avatar file
       try {
-        const { unlink } = await import('fs/promises');
-        const { join } = await import('path');
-        const filename = currentUser[0].avatar_url.split('/').pop();
-        if (filename) {
-          const filePath = join(process.cwd(), 'public', 'uploads', 'avatars', filename);
-          await unlink(filePath);
-        }
+        const { deleteAvatarFromStorage } = await import('@/lib/utils/supabase-storage');
+        await deleteAvatarFromStorage(currentUser[0].avatar_url);
       } catch (error) {
-        console.warn('Failed to delete avatar file:', error);
+        console.warn('Failed to delete avatar from storage:', error);
       }
     }
 

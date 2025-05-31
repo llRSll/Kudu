@@ -140,6 +140,7 @@ export function AccountSettings() {
         formData.append("avatar", fileToUpload);
       }
 
+      console.log("Uploading avatar to Supabase storage...");
       const uploadResponse = await fetch("/api/upload/avatar", {
         method: "POST",
         body: formData,
@@ -148,9 +149,12 @@ export function AccountSettings() {
       const uploadResult = await uploadResponse.json();
 
       if (!uploadResponse.ok) {
+        console.error("Upload failed:", uploadResult);
         throw new Error(uploadResult.error || "Failed to upload avatar");
       }
 
+      console.log("Avatar uploaded successfully:", uploadResult.avatarUrl);
+      
       // Update user avatar in database
       const result = await updateUserAvatar(user.id, uploadResult.avatarUrl);
 
@@ -158,6 +162,7 @@ export function AccountSettings() {
         toast.success("Avatar updated successfully");
         setUserSettings(result.user);
       } else {
+        console.error("Database update failed:", result);
         throw new Error(result.error || "Failed to update avatar");
       }
     } catch (error) {
