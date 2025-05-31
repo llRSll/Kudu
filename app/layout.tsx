@@ -1,7 +1,7 @@
 import { metadata } from "./metadata";
-import RootLayoutClient from "./layout.client";
+import { ClientLayout } from "@/components/client-layout";
 export { metadata };
-import { ToasterProvider } from "@/components/ToasterProvider";
+import "./globals.css"
 
 export default function RootLayout({
   children,
@@ -9,8 +9,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <RootLayoutClient>
-      {children} <ToasterProvider />
-    </RootLayoutClient>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
+      </body>
+    </html>
   );
 }

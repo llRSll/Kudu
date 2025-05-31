@@ -1,61 +1,68 @@
-"use client"
+"use client";
 
-import { PropertyDetail } from "@/components/properties/property-detail"
-import { useParams, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { fetchInvestmentPropertyById, fetchPropertyCashFlow } from "@/lib/api/investments-properties"
-import { Property } from "@/components/properties/property-list"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent } from "@/components/ui/card"
+import { PropertyDetail } from "@/components/properties/property-detail";
+import { useParams, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  fetchInvestmentPropertyById,
+  fetchPropertyById,
+  fetchPropertyCashFlow,
+} from "@/lib/api/investments-properties";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Property } from "@/components/properties/types";
 
 export default function PropertyPage() {
-  const params = useParams()
-  const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState("overview")
-  const [property, setProperty] = useState<Property | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [property, setProperty] = useState<Property | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Set active tab from URL param if available
   useEffect(() => {
-    const tab = searchParams.get("tab")
-    if (tab && ["overview", "financial", "cashflow", "documents"].includes(tab)) {
-      setActiveTab(tab)
+    const tab = searchParams.get("tab");
+    if (
+      tab &&
+      ["overview", "financial", "cashflow", "documents"].includes(tab)
+    ) {
+      setActiveTab(tab);
     }
-  }, [searchParams])
-  
+  }, [searchParams]);
+
   // Get property ID from route
-  const propertyId = params?.id ? params.id.toString() : undefined
-  
+  const propertyId = params?.id ? params.id.toString() : undefined;
+
   // Fetch property data
   useEffect(() => {
     async function loadProperty() {
       if (!propertyId) {
-        setError("Property ID is required")
-        setIsLoading(false)
-        return
+        setError("Property ID is required");
+        setIsLoading(false);
+        return;
       }
-      
+
       try {
-        setIsLoading(true)
-        const data = await fetchInvestmentPropertyById(propertyId)
+        setIsLoading(true);
+        const data = await fetchPropertyById(propertyId);
         if (!data) {
-          setError("Property not found")
+          setError("Property not found");
         } else {
-          setProperty(data)
-          setError(null)
+          setProperty(data);
+          setError(null);
         }
       } catch (err) {
-        console.error("Failed to load property:", err)
-        setError("Failed to load property details")
+        console.error("Failed to load property:", err);
+        setError("Failed to load property details");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    
-    loadProperty()
-  }, [propertyId])
-  
+
+    loadProperty();
+  }, [propertyId]);
+
   if (isLoading) {
     return (
       <div className="container py-6">
@@ -85,9 +92,9 @@ export default function PropertyPage() {
           </Card>
         </div>
       </div>
-    )
+    );
   }
-  
+
   if (error) {
     return (
       <div className="container py-6">
@@ -100,13 +107,13 @@ export default function PropertyPage() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="container py-6">
       {/* We pass the property ID to the component which will use either real data or sample data */}
       <PropertyDetail propertyId={propertyId as any} initialTab={activeTab} />
     </div>
-  )
-} 
+  );
+}

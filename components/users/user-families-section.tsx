@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Trash2, Edit, User, Users, Home } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface FamilyRole {
   id: string;
@@ -57,6 +57,7 @@ export default function UserFamiliesSection({
   allFamilies,
   familyRoles,
 }: UserFamiliesSectionProps) {
+  const toast = useAppToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [selectedFamily, setSelectedFamily] = useState<string>('');
@@ -75,11 +76,7 @@ export default function UserFamiliesSection({
 
   const handleAddToFamily = async () => {
     if (!selectedFamily) {
-      toast({
-        title: "Error",
-        description: "Please select a family.",
-        variant: "destructive",
-      });
+      toast.error("Please select a family.");
       return;
     }
 
@@ -88,28 +85,33 @@ export default function UserFamiliesSection({
       // Replace empty or "none" value with null for the role ID
       const roleId = selectedFamilyRole === 'none' ? null : selectedFamilyRole || null;
       
-      // Call the addUserToFamily server action via fetch
-      const response = await fetch('/api/users/families', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          familyId: selectedFamily,
-          familyRoleId: roleId
-        }),
-      });
+      await toast.handleApiCall(
+        async () => {
+          const response = await fetch('/api/users/families', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId,
+              familyId: selectedFamily,
+              familyRoleId: roleId
+            }),
+          });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to add user to family");
-      }
-      
-      toast({
-        title: "Success",
-        description: "User added to family successfully.",
-      });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to add user to family");
+          }
+
+          return response.json();
+        },
+        {
+          loadingMessage: "Adding user to family...",
+          successMessage: "User added to family successfully!",
+          errorMessage: "Failed to add user to family",
+        }
+      );
       
       // Reset form and close dialog
       setSelectedFamily('');
@@ -119,11 +121,8 @@ export default function UserFamiliesSection({
       // Reload page to refresh data
       window.location.reload();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add user to family.",
-        variant: "destructive",
-      });
+      // Error is already handled by the toast service
+      console.error("Error adding user to family:", error);
     } finally {
       setIsLoading(false);
     }
@@ -137,28 +136,33 @@ export default function UserFamiliesSection({
       // Replace empty or "none" value with null for the role ID
       const roleId = selectedFamilyRole === 'none' ? null : selectedFamilyRole || null;
       
-      // Call the updateFamilyMemberRole server action via fetch
-      const response = await fetch('/api/users/families/role', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          familyId: familyToUpdate.familyId,
-          familyRoleId: roleId
-        }),
-      });
+      await toast.handleApiCall(
+        async () => {
+          const response = await fetch('/api/users/families/role', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId,
+              familyId: familyToUpdate.familyId,
+              familyRoleId: roleId
+            }),
+          });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update family role");
-      }
-      
-      toast({
-        title: "Success",
-        description: "Family role updated successfully.",
-      });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to update family role");
+          }
+
+          return response.json();
+        },
+        {
+          loadingMessage: "Updating family role...",
+          successMessage: "Family role updated successfully!",
+          errorMessage: "Failed to update family role",
+        }
+      );
       
       // Reset form and close dialog
       setFamilyToUpdate(null);
@@ -168,11 +172,8 @@ export default function UserFamiliesSection({
       // Reload page to refresh data
       window.location.reload();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update family role.",
-        variant: "destructive",
-      });
+      // Error is already handled by the toast service
+      console.error("Error updating family role:", error);
     } finally {
       setIsLoading(false);
     }
@@ -184,29 +185,31 @@ export default function UserFamiliesSection({
     }
 
     try {
-      // Call the removeUserFromFamily server action via fetch
-      const response = await fetch(`/api/users/families?userId=${userId}&familyId=${familyId}`, {
-        method: 'DELETE',
-      });
+      await toast.handleApiCall(
+        async () => {
+          const response = await fetch(`/api/users/families?userId=${userId}&familyId=${familyId}`, {
+            method: 'DELETE',
+          });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to remove user from family");
-      }
-      
-      toast({
-        title: "Success",
-        description: "User removed from family.",
-      });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to remove user from family");
+          }
+
+          return response.json();
+        },
+        {
+          loadingMessage: "Removing user from family...",
+          successMessage: "User removed from family successfully!",
+          errorMessage: "Failed to remove user from family",
+        }
+      );
       
       // Reload page to refresh data
       window.location.reload();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove user from family.",
-        variant: "destructive",
-      });
+      // Error is already handled by the toast service
+      console.error("Error removing user from family:", error);
     }
   };
 

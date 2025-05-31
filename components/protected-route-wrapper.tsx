@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
-export default function PropertiesLayout({
+export default function ProtectedRouteWrapper({
   children,
 }: {
   children: React.ReactNode
@@ -32,5 +32,5 @@ export default function PropertiesLayout({
     return null
   }
 
-  return children
-} 
+  return <>{children}</>
+}
