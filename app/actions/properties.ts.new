@@ -1,7 +1,7 @@
 'use server'
 
-import { getSupabaseAdmin } from "@/lib/supabase"
-import { revalidatePath } from "next/cache"
+import { getSupabaseAdmin } from '@/lib/supabase'
+import { revalidatePath } from 'next/cache'
 
 export interface Property {
   id: string
@@ -216,12 +216,10 @@ export async function fetchTenants(propertyId: string): Promise<Tenant[]> {
       id: 'tenant-1',
       property_id: propertyId,
       name: 'John Smith',
-      email: 'john.smith@example.com',
-      phone: '555-123-4567',
       lease_start: new Date(2023, 5, 1).toISOString(),
       lease_end: new Date(2024, 4, 30).toISOString(),
       rent_amount: 1800,
-      payment_status: 'current',
+      status: 'active',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
@@ -229,12 +227,10 @@ export async function fetchTenants(propertyId: string): Promise<Tenant[]> {
       id: 'tenant-2',
       property_id: propertyId,
       name: 'Jane Doe',
-      email: 'jane.doe@example.com',
-      phone: '555-987-6543',
       lease_start: new Date(2023, 2, 15).toISOString(),
       lease_end: new Date(2024, 2, 14).toISOString(),
       rent_amount: 1650,
-      payment_status: 'current',
+      status: 'ending',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -260,110 +256,6 @@ export async function fetchTenants(propertyId: string): Promise<Tenant[]> {
 }
 
 /**
- * Add a tenant
- * TEMPORARILY DISABLED: Returns mock data without saving to database
- */
-export async function addTenant(tenant: Omit<Tenant, 'id'>): Promise<Tenant | null> {
-  // Return a mock tenant with an id without saving to the database
-  const newTenant = {
-    ...tenant,
-    id: `tenant-${Date.now()}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  
-  // Revalidate the path to refresh the UI
-  revalidatePath(`/properties/${tenant.property_id}`);
-  return newTenant;
-
-  /* Original implementation:
-  const supabase = getSupabaseAdmin()
-  if (!supabase) return null
-
-  const { data, error } = await supabase
-    .from('tenants')
-    .insert(tenant)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error adding tenant:', error)
-    return null
-  }
-
-  revalidatePath(`/properties/${tenant.property_id}`)
-  return data as Tenant
-  */
-}
-
-/**
- * Update a tenant
- * TEMPORARILY DISABLED: Returns the updated tenant without saving to database
- */
-export async function updateTenant(tenant: Tenant): Promise<Tenant | null> {
-  // Simply return the updated tenant with a new timestamp
-  const updatedTenant = {
-    ...tenant,
-    updated_at: new Date().toISOString()
-  };
-  
-  // Revalidate the path to refresh the UI
-  revalidatePath(`/properties/${tenant.property_id}`);
-  return updatedTenant;
-
-  /* Original implementation:
-  const supabase = getSupabaseAdmin()
-  if (!supabase) return null
-
-  const { data, error } = await supabase
-    .from('tenants')
-    .update(tenant)
-    .eq('id', tenant.id)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error updating tenant:', error)
-    return null
-  }
-
-  revalidatePath(`/properties/${tenant.property_id}`)
-  return data as Tenant
-  */
-}
-
-/**
- * Delete a tenant
- * TEMPORARILY DISABLED: Returns success without actually deleting from database
- */
-export async function deleteTenant(id: string, propertyId: string): Promise<boolean> {
-  // Simply return success without actually deleting anything
-  console.log(`Mock delete for tenant ${id} from property ${propertyId}`);
-  
-  // Revalidate the path to trigger a refresh of the UI
-  revalidatePath(`/properties/${propertyId}`);
-  return true;
-
-  /* Original implementation:
-  const supabase = getSupabaseAdmin()
-  if (!supabase) return false
-
-  const { error } = await supabase
-    .from('tenants')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    console.error('Error deleting tenant:', error)
-    return false
-  }
-
-  revalidatePath(`/properties/${propertyId}`)
-  return true
-  */
-}
-
-/**
  * Fetch maintenance items for a property
  * TEMPORARILY DISABLED: Returns hardcoded data to prevent errors
  */
@@ -373,11 +265,11 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
     {
       id: 'maintenance-1',
       property_id: propertyId,
-      title: 'HVAC System Maintenance',
-      description: 'Annual service check and filter replacement',
+      title: 'HVAC Maintenance',
+      description: 'Annual HVAC system maintenance and filter replacement',
       cost: 350,
-      date: new Date(2023, 11, 15).toISOString(),
-      status: 'scheduled',
+      date: new Date(2023, 5, 15).toISOString(),
+      status: 'completed',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
@@ -385,10 +277,10 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
       id: 'maintenance-2',
       property_id: propertyId,
       title: 'Roof Inspection',
-      description: 'Check for damage after recent storm',
+      description: 'Check roof for leaks and damage after storm',
       cost: 275,
-      date: new Date(2023, 10, 5).toISOString(),
-      status: 'completed',
+      date: new Date(2023, 7, 10).toISOString(),
+      status: 'scheduled',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
@@ -396,9 +288,9 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
       id: 'maintenance-3',
       property_id: propertyId,
       title: 'Plumbing Repair',
-      description: 'Fix leaking faucet in master bathroom',
+      description: 'Fix leaking bathroom faucet',
       cost: 180,
-      date: new Date(2023, 11, 28).toISOString(),
+      date: new Date(2023, 4, 22).toISOString(),
       status: 'pending',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -424,20 +316,75 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
   */
 }
 
+// Keep all other functions from the original file below this line
+// Add a tenant
+export async function addTenant(tenant: Omit<Tenant, 'id'>): Promise<Tenant | null> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return null
+
+  const { data, error } = await supabase
+    .from('tenants')
+    .insert(tenant)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error adding tenant:', error)
+    return null
+  }
+
+  revalidatePath(`/properties/${tenant.property_id}`)
+  return data as Tenant
+}
+
+/**
+ * Update a tenant
+ */
+export async function updateTenant(tenant: Tenant): Promise<Tenant | null> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return null
+
+  const { data, error } = await supabase
+    .from('tenants')
+    .update(tenant)
+    .eq('id', tenant.id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating tenant:', error)
+    return null
+  }
+
+  revalidatePath(`/properties/${tenant.property_id}`)
+  return data as Tenant
+}
+
+/**
+ * Delete a tenant
+ */
+export async function deleteTenant(id: string, propertyId: string): Promise<boolean> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return false
+
+  const { error } = await supabase
+    .from('tenants')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting tenant:', error)
+    return false
+  }
+
+  revalidatePath(`/properties/${propertyId}`)
+  return true
+}
+
 /**
  * Add a maintenance item
- * TEMPORARILY DISABLED: Returns mock data without saving to database
  */
 export async function addMaintenanceItem(item: Omit<MaintenanceItem, 'id'>): Promise<MaintenanceItem | null> {
-  // Return a mock item with an id
-  return {
-    ...item,
-    id: `maintenance-${Date.now()}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return null
 
@@ -454,21 +401,12 @@ export async function addMaintenanceItem(item: Omit<MaintenanceItem, 'id'>): Pro
 
   revalidatePath(`/properties/${item.property_id}`)
   return data as MaintenanceItem
-  */
 }
 
 /**
  * Update a maintenance item
- * TEMPORARILY DISABLED: Returns the updated item without saving to database
  */
 export async function updateMaintenanceItem(item: MaintenanceItem): Promise<MaintenanceItem | null> {
-  // Simply return the updated item with a new timestamp
-  return {
-    ...item,
-    updated_at: new Date().toISOString()
-  };
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return null
 
@@ -486,22 +424,12 @@ export async function updateMaintenanceItem(item: MaintenanceItem): Promise<Main
 
   revalidatePath(`/properties/${item.property_id}`)
   return data as MaintenanceItem
-  */
 }
 
 /**
  * Delete a maintenance item
- * TEMPORARILY DISABLED: Returns success without actually deleting from database
  */
 export async function deleteMaintenanceItem(id: string, propertyId: string): Promise<boolean> {
-  // Simply return success without actually deleting anything
-  console.log(`Mock delete for maintenance item ${id} from property ${propertyId}`);
-  
-  // Revalidate the path to trigger a refresh of the UI
-  revalidatePath(`/properties/${propertyId}`);
-  return true;
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return false
 
@@ -517,49 +445,12 @@ export async function deleteMaintenanceItem(id: string, propertyId: string): Pro
 
   revalidatePath(`/properties/${propertyId}`)
   return true
-  */
 }
 
 /**
  * Fetch property images
- * TEMPORARILY DISABLED: Returns hardcoded data to prevent errors
  */
 export async function fetchPropertyImages(propertyId: string): Promise<PropertyImage[]> {
-  // Return hardcoded property images instead of querying the database
-  return [
-    {
-      id: 'image-1',
-      property_id: propertyId,
-      url: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233',
-      file_name: 'exterior_front.jpg',
-      file_size: 1250000,
-      content_type: 'image/jpeg',
-      created_at: new Date().toISOString(),
-      is_primary: true
-    },
-    {
-      id: 'image-2',
-      property_id: propertyId,
-      url: 'https://images.unsplash.com/photo-1560184897-ae75f418493e',
-      file_name: 'living_room.jpg',
-      file_size: 980000,
-      content_type: 'image/jpeg',
-      created_at: new Date().toISOString(),
-      is_primary: false
-    },
-    {
-      id: 'image-3',
-      property_id: propertyId,
-      url: 'https://images.unsplash.com/photo-1556912167-f556f1f39fdf',
-      file_name: 'kitchen.jpg',
-      file_size: 1050000,
-      content_type: 'image/jpeg',
-      created_at: new Date().toISOString(),
-      is_primary: false
-    }
-  ];
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return []
 
@@ -575,41 +466,15 @@ export async function fetchPropertyImages(propertyId: string): Promise<PropertyI
   }
 
   return data as PropertyImage[]
-  */
 }
 
 /**
  * Upload a property image to Supabase storage
- * TEMPORARILY DISABLED: Returns mock data without saving to database
  */
 export async function uploadPropertyImage(
   propertyId: string, 
   file: File
 ): Promise<PropertyImage | null> {
-  // Return a mock property image without actually uploading anything
-  const mockImageId = `image-${Date.now()}`;
-  const fileName = `${propertyId}/${Date.now()}-${file.name}`;
-  
-  // Create a mock URL from unsplash 
-  const mockUrl = 'https://images.unsplash.com/photo-1560185007-5f0bb1866cab';
-  
-  // Return mock data
-  const mockImageRecord: PropertyImage = {
-    id: mockImageId,
-    property_id: propertyId,
-    url: mockUrl,
-    file_name: fileName,
-    file_size: file.size,
-    content_type: file.type,
-    is_primary: false,
-    created_at: new Date().toISOString()
-  };
-  
-  // Revalidate the path to trigger a refresh of the UI
-  revalidatePath(`/properties/${propertyId}`);
-  return mockImageRecord;
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return null
 
@@ -664,22 +529,12 @@ export async function uploadPropertyImage(
 
   revalidatePath(`/properties/${propertyId}`)
   return dbRecord as PropertyImage
-  */
 }
 
 /**
  * Delete a property image
- * TEMPORARILY DISABLED: Returns success without actually deleting from storage or database
  */
 export async function deletePropertyImage(id: string, fileName: string, propertyId: string): Promise<boolean> {
-  // Simply log and return success without actually deleting anything
-  console.log(`Mock delete for property image ${id} (${fileName}) from property ${propertyId}`);
-  
-  // Revalidate the path to trigger a refresh of the UI
-  revalidatePath(`/properties/${propertyId}`);
-  return true;
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return false
 
@@ -707,22 +562,12 @@ export async function deletePropertyImage(id: string, fileName: string, property
 
   revalidatePath(`/properties/${propertyId}`)
   return true
-  */
 }
 
 /**
  * Set primary property image
- * TEMPORARILY DISABLED: Returns success without actually updating the database
  */
 export async function setPrimaryPropertyImage(id: string, propertyId: string): Promise<boolean> {
-  // Simply log and return success without actually updating anything
-  console.log(`Mock set primary for property image ${id} from property ${propertyId}`);
-  
-  // Revalidate the path to trigger a refresh of the UI
-  revalidatePath(`/properties/${propertyId}`);
-  return true;
-
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return false
 
@@ -750,5 +595,4 @@ export async function setPrimaryPropertyImage(id: string, propertyId: string): P
 
   revalidatePath(`/properties/${propertyId}`)
   return true
-  */
 }

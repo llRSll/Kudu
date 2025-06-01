@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyOverview } from "./property-overview";
 import { FinancialTenantsTab } from "./property-financial-tenants";
-import { PropertyCashFlowTab } from "./property-cashflow-tab";
+import { PropertyCashFlowTab } from "./property-cashflow-tab.new";
 import { PropertyDocumentsTab } from "./property-documents-tab";
 import { 
   Property, 

@@ -13,12 +13,11 @@ export interface CashFlow {
   timestamp: string
   description: string
   transaction_type: string
-  debit_credit: 'debit' | 'credit'
-  type: 'income' | 'expense'
+  debit_credit: 'DEBIT' | 'CREDIT'  // Updated to uppercase
   amount: number
-  status: 'scheduled' | 'pending' | 'completed'
   created_at?: string
   updated_at?: string
+  // Note: type and status fields removed as they don't exist in the database schema
 }
 
 /**
@@ -73,6 +72,67 @@ export async function fetchCashFlows(
 
   if (error) {
     console.error('Error fetching cash flows:', error)
+    return []
+  }
+
+  return data as CashFlow[]
+}
+
+/**
+ * Fetch cash flows for a property filtered by period and user
+ */
+export async function fetchFilteredCashFlows(
+  propertyId: string,
+  period: string = '6m',
+  userId?: string
+): Promise<CashFlow[]> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return []
+
+  // Calculate date range based on period
+  const today = new Date()
+  let startDate: Date | undefined
+  
+  switch (period) {
+    case '6m':
+      startDate = new Date(today)
+      startDate.setMonth(today.getMonth() - 6)
+      break
+    case '12m':
+      startDate = new Date(today)
+      startDate.setMonth(today.getMonth() - 12)
+      break
+    case 'ytd':
+      startDate = new Date(today.getFullYear(), 0, 1) // January 1st of current year
+      break
+    case 'all':
+      // Don't set a start date to get all records
+      break
+    default:
+      // Default to 6 months
+      startDate = new Date(today)
+      startDate.setMonth(today.getMonth() - 6)
+  }
+  
+  let query = supabase
+    .from('cash_flows')
+    .select('*')
+    .eq('property_id', propertyId)
+  
+  // Add date filter if applicable
+  if (startDate) {
+    query = query.gte('timestamp', startDate.toISOString().split('T')[0])
+  }
+  
+  // Filter by user if provided
+  if (userId) {
+    query = query.eq('user_id', userId)
+  }
+  
+  const { data, error } = await query.order('timestamp', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching filtered cash flows:', error)
     return []
   }
 
