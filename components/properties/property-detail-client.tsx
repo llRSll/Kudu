@@ -6,6 +6,9 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertyOverview } from "./property-overview";
+import { FinancialTenantsTab } from "./property-financial-tenants";
+import { PropertyCashFlowTab } from "./property-cashflow-tab";
+import { PropertyDocumentsTab } from "./property-documents-tab";
 import { 
   Property, 
   FinancialSummary, 
@@ -13,15 +16,7 @@ import {
   MaintenanceItem, 
   PropertyImage 
 } from "@/app/actions/properties";
-
-interface UpcomingCashFlow {
-  id: string;
-  date: string;
-  description: string;
-  type: 'income' | 'expense';
-  amount: number;
-  status: 'scheduled' | 'pending' | 'completed';
-}
+import { CashFlow } from "@/app/actions/cashflows";
 
 interface PropertyDetailClientProps {
   property: Property;
@@ -29,8 +24,11 @@ interface PropertyDetailClientProps {
   tenants: Tenant[];
   maintenanceItems: MaintenanceItem[];
   propertyImages: PropertyImage[];
-  upcomingCashFlows: UpcomingCashFlow[];
+  upcomingCashFlows: CashFlow[];
+  cashFlows: CashFlow[];
   initialTab?: string;
+  // Documents will be added later when we have a proper interface
+  propertyDocuments?: any[];
 }
 
 export function PropertyDetailClient({ 
@@ -40,6 +38,8 @@ export function PropertyDetailClient({
   maintenanceItems,
   propertyImages,
   upcomingCashFlows,
+  cashFlows = [],
+  propertyDocuments = [],
   initialTab = "overview" 
 }: PropertyDetailClientProps) {
   const router = useRouter();
@@ -96,23 +96,30 @@ export function PropertyDetailClient({
           />
         </TabsContent>
         
-        {/* Other tabs will be implemented later */}
+        {/* Financial & Tenants Tab */}
         <TabsContent value="financial" className="mt-6">
-          <div className="text-center py-12 text-muted-foreground">
-            Financial & Tenants tab content will be implemented soon.
-          </div>
+          <FinancialTenantsTab 
+            property={property}
+            financialSummary={financialSummary}
+            tenants={tenants}
+            maintenanceItems={maintenanceItems}
+          />
         </TabsContent>
         
+        {/* Cash Flow Tab */}
         <TabsContent value="cashflow" className="mt-6">
-          <div className="text-center py-12 text-muted-foreground">
-            Cash Flow tab content will be implemented soon.
-          </div>
+          <PropertyCashFlowTab 
+            property={property}
+            cashFlows={cashFlows}
+          />
         </TabsContent>
         
+        {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
-          <div className="text-center py-12 text-muted-foreground">
-            Documents tab content will be implemented soon.
-          </div>
+          <PropertyDocumentsTab 
+            property={property}
+            propertyDocuments={propertyDocuments}
+          />
         </TabsContent>
       </Tabs>
     </div>

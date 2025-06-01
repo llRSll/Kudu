@@ -1,15 +1,18 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { PropertyDetailClient } from "@/components/properties/property-detail-client";
+import { PropertyPageSkeleton } from "@/components/properties/property-page-skeleton";
 import { 
   fetchPropertyById, 
   fetchFinancialSummary, 
   fetchTenants, 
   fetchMaintenanceItems,
-  fetchPropertyImages 
+  fetchPropertyImages
 } from "@/app/actions/properties";
-import { fetchUpcomingCashFlows } from "@/app/actions/cashflows";
-import { PropertyDetailClient } from "@/components/properties/property-detail-client";
-import { PropertyPageSkeleton } from "@/components/properties/property-page-skeleton";
+import { 
+  fetchUpcomingCashFlows,
+  fetchCashFlows
+} from "@/app/actions/cashflows";
+import { Suspense } from "react";
 
 interface PropertyPageProps {
   params: {
@@ -20,34 +23,32 @@ interface PropertyPageProps {
   };
 }
 
-export default async function PropertyPage({ 
-  params, 
-  searchParams 
-}: PropertyPageProps) {
-  // Get property data using the server action
+export default async function PropertyPage({ params, searchParams }: PropertyPageProps) {
+  // Fetch property data
   const property = await fetchPropertyById(params.id);
   
+  // If property not found, return 404
   if (!property) {
     notFound();
   }
-
-  // Fetch related data in parallel
+  
+  // Fetch all related data in parallel for efficiency
   const [
     financialSummary,
     tenants,
     maintenanceItems,
     propertyImages,
-    upcomingCashFlows
+    upcomingCashFlows,
+    allCashFlows
   ] = await Promise.all([
-    fetchFinancialSummary(property.id),
-    fetchTenants(property.id),
-    fetchMaintenanceItems(property.id),
-    fetchPropertyImages(property.id),
-    fetchUpcomingCashFlows(property.id)
+    fetchFinancialSummary(params.id),
+    fetchTenants(params.id),
+    fetchMaintenanceItems(params.id),
+    fetchPropertyImages(params.id),
+    fetchUpcomingCashFlows(params.id),
+    fetchCashFlows(params.id)
   ]);
-
-  const initialTab = searchParams.tab || "overview";
-
+  
   return (
     <div className="container py-6">
       <Suspense fallback={<PropertyPageSkeleton />}>
@@ -58,7 +59,9 @@ export default async function PropertyPage({
           maintenanceItems={maintenanceItems}
           propertyImages={propertyImages}
           upcomingCashFlows={upcomingCashFlows}
-          initialTab={initialTab}
+          cashFlows={allCashFlows}
+          propertyDocuments={[]} // Will be populated from documents API later
+          initialTab={searchParams.tab || "overview"}
         />
       </Suspense>
     </div>
