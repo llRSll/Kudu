@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache'
 export interface CashFlow {
   id: string
   property_id: string
+  entity_id?: string | null
+  user_id?: string
   date: string
   description: string
   type: 'income' | 'expense'

@@ -6,18 +6,10 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -27,33 +19,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ArrowDown,
-  ArrowUp,
-  Calendar as CalendarIcon,
-  Download,
-  Filter,
-  MoreHorizontal,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
 import { Property } from "@/app/actions/properties";
 import { CashFlow } from "@/app/actions/cashflows";
 import { FilterControls } from "./portfolio-summary";
-import { cn } from "@/lib/utils";
 import { BarChart } from "./portfolio-summary";
+import { AddCashFlowForm } from "./add-cash-flow-form";
 
 interface MonthlyData {
   date: Date;
@@ -78,7 +56,8 @@ export function PropertyCashFlowTab({
   const [period, setPeriod] = useState<string>("month");
   const [selectedPeriod, setSelectedPeriod] = useState("6m");
   const [selectedType, setSelectedType] = useState("all");
-  const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>(); 
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   // Define timePeriods and cashFlowTypes options
   const timePeriods = [
@@ -157,20 +136,26 @@ export function PropertyCashFlowTab({
   };
 
   const monthlyData = generateMonthlyData();
-  
+
   // Function to get filtered data based on selected period and type
   const getFilteredCashFlowData = (): any[] => {
     // For demonstration, we'll just use the monthly data we already have
     // In a real app, you would filter based on selectedPeriod and dateRange
-    return monthlyData.map(item => ({
+    return monthlyData.map((item) => ({
       ...item,
       amount: item.income - item.expenses - item.maintenance, // Total net cash flow
       income: item.income,
       expenses: item.expenses,
       maintenance: item.maintenance,
       date: item.date,
-      month: item.month
+      month: item.month,
     }));
+  };
+
+  // Function to handle successful cash flow addition
+  const handleCashFlowSuccess = () => {
+    setIsAddDialogOpen(false);
+    // In a real app, we would refetch the data here
   };
 
   return (
@@ -183,17 +168,38 @@ export function PropertyCashFlowTab({
               Monthly income and expenses breakdown
             </CardDescription>
           </div>
-          <FilterControls
-            timePeriods={timePeriods}
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-            propertyTypes={cashFlowTypes}
-            selectedType={selectedType}
-            onTypeChange={setSelectedType}
-            dateRange={dateRange}
-            onDateRangeChange={(range) => setDateRange(range)}
-            onGenerateReport={() => console.log("Generating report")}
-          />
+          <div className="flex items-center gap-2">
+            <FilterControls
+              timePeriods={timePeriods}
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+              propertyTypes={cashFlowTypes}
+              selectedType={selectedType}
+              onTypeChange={setSelectedType}
+              dateRange={dateRange}
+              onDateRangeChange={(range) => setDateRange(range)}
+              onGenerateReport={() => console.log("Generating report")}
+            />
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="ml-2">
+                  <Plus className="mr-1 h-4 w-4" /> Add Cash Flow
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Add Cash Flow</DialogTitle>
+                  <DialogDescription>
+                    Add a new income or expense for this property.
+                  </DialogDescription>
+                </DialogHeader>
+                <AddCashFlowForm
+                  property={property}
+                  onSuccess={handleCashFlowSuccess}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <BarChart
@@ -213,28 +219,30 @@ export function PropertyCashFlowTab({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getFilteredCashFlowData().map((item: MonthlyData, index: number) => (
-                  <TableRow key={index}>
-                    <TableCell>{format(item.date, "MMM yyyy")}</TableCell>
-                    <TableCell className="text-right">
-                      ${item.income.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${item.expenses.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${item.maintenance.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      $
-                      {(
-                        item.income -
-                        item.expenses -
-                        item.maintenance
-                      ).toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {getFilteredCashFlowData().map(
+                  (item: MonthlyData, index: number) => (
+                    <TableRow key={index}>
+                      <TableCell>{format(item.date, "MMM yyyy")}</TableCell>
+                      <TableCell className="text-right">
+                        ${item.income.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${item.expenses.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${item.maintenance.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        $
+                        {(
+                          item.income -
+                          item.expenses -
+                          item.maintenance
+                        ).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  )
+                )}
               </TableBody>
             </Table>
           </div>
