@@ -15,7 +15,7 @@ export const cashFlowSchema = z.object({
     message: "Please select a valid transaction type"
   }),
   amount: z.coerce.number().positive("Amount must be a positive number"),
-  debit_credit: z.enum(["debit", "credit"], {
+  debit_credit: z.enum(["DEBIT", "CREDIT"], {
     required_error: "Type is required",
   }),
 });

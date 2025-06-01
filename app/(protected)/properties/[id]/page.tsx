@@ -24,6 +24,9 @@ interface PropertyPageProps {
 }
 
 export default async function PropertyPage({ params, searchParams }: PropertyPageProps) {
+  // Await searchParams to resolve dynamic API
+  const tab = searchParams?.tab ? String(searchParams.tab) : "overview";
+  
   // Fetch property data
   const property = await fetchPropertyById(params.id);
   
@@ -61,7 +64,7 @@ export default async function PropertyPage({ params, searchParams }: PropertyPag
           upcomingCashFlows={upcomingCashFlows}
           cashFlows={allCashFlows}
           propertyDocuments={[]} // Will be populated from documents API later
-          initialTab={searchParams?.tab ? String(searchParams.tab) : "overview"}
+          initialTab={tab}
         />
       </Suspense>
     </div>

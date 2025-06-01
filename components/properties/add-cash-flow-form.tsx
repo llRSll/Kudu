@@ -48,7 +48,7 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
       description: "",
       transaction_type: "",
       amount: undefined,
-      debit_credit: "credit", // Default to credit (income)
+      debit_credit: "CREDIT", // Default to CREDIT (income)
     },
   });
   
@@ -56,7 +56,8 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
   const handleTransactionTypeChange = (type: string) => {
     const selectedType = TRANSACTION_TYPES.find(t => t.value === type);
     if (selectedType) {
-      form.setValue("debit_credit", selectedType.defaultType as "debit" | "credit");
+      // Set debit_credit based on the transaction type
+      form.setValue("debit_credit", selectedType.defaultType as "DEBIT" | "CREDIT");
     }
     form.setValue("transaction_type", type);
   };
@@ -83,14 +84,11 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
         entity_id: property.entity_id || null,
         investment_id: property.investment_id || null,
         timestamp: formattedTimestamp,
-        // Remove date field as it's not in the schema anymore
         description: values.description,
         transaction_type: values.transaction_type,
         amount: values.amount,
-        debit_credit: values.debit_credit,
-        // Set the statuses based on debit_credit value
-        type: (values.debit_credit === 'credit' ? 'income' : 'expense') as 'income' | 'expense',
-        status: 'completed' as 'scheduled' | 'pending' | 'completed', // Default status
+        debit_credit: values.debit_credit, // Already in uppercase from the form
+        // Removed type field as it doesn't exist in the database schema
       };
       
       // Log the payload before sending
@@ -214,8 +212,8 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="credit">Income (Credit)</SelectItem>
-                    <SelectItem value="debit">Expense (Debit)</SelectItem>
+                    <SelectItem value="CREDIT">Income (Credit)</SelectItem>
+                    <SelectItem value="DEBIT">Expense (Debit)</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
