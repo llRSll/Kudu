@@ -34,6 +34,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowDown,
   ArrowUp,
   Calendar as CalendarIcon,
@@ -43,6 +51,9 @@ import {
 } from "lucide-react";
 import { Property } from "@/app/actions/properties";
 import { CashFlow } from "@/app/actions/cashflows";
+import { FilterControls } from "./portfolio-summary";
+import { cn } from "@/lib/utils";
+import { BarChart } from "./portfolio-summary";
 
 interface MonthlyData {
   date: Date;
@@ -50,6 +61,8 @@ interface MonthlyData {
   income: number;
   expenses: number;
   maintenance: number;
+  amount?: number;
+  [key: string]: number | string | Date | undefined;
 }
 
 interface PropertyCashFlowTabProps {
@@ -63,12 +76,31 @@ export function PropertyCashFlowTab({
 }: PropertyCashFlowTabProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [period, setPeriod] = useState<string>("month");
-  
+  const [selectedPeriod, setSelectedPeriod] = useState("6m");
+  const [selectedType, setSelectedType] = useState("all");
+  const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>(); 
+
+  // Define timePeriods and cashFlowTypes options
+  const timePeriods = [
+    { label: "Last 6 months", value: "6m" },
+    { label: "Last 12 months", value: "12m" },
+    { label: "Year to date", value: "ytd" },
+    { label: "All time", value: "all" },
+    { label: "Custom", value: "custom" },
+  ];
+
+  const cashFlowTypes = [
+    { label: "All Types", value: "all" },
+    { label: "Income", value: "income" },
+    { label: "Expenses", value: "expenses" },
+    { label: "Maintenance", value: "maintenance" },
+  ];
+
   // Format a date
   const formatDate = (dateStr: string) => {
     return format(new Date(dateStr), "MMM d, yyyy");
   };
-  
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -78,212 +110,134 @@ export function PropertyCashFlowTab({
       maximumFractionDigits: 0,
     }).format(amount);
   };
-  
+
   // Calculate income, expenses, and net
-  const incomeCashFlows = cashFlows.filter(cf => cf.type === "income");
-  const expenseCashFlows = cashFlows.filter(cf => cf.type === "expense");
-  
+  const incomeCashFlows = cashFlows.filter((cf) => cf.type === "income");
+  const expenseCashFlows = cashFlows.filter((cf) => cf.type === "expense");
+
   const totalIncome = incomeCashFlows.reduce((sum, cf) => sum + cf.amount, 0);
-  const totalExpenses = expenseCashFlows.reduce((sum, cf) => sum + cf.amount, 0);
+  const totalExpenses = expenseCashFlows.reduce(
+    (sum, cf) => sum + cf.amount,
+    0
+  );
   const netCashFlow = totalIncome - totalExpenses;
-  
+
   // Generate monthly data for the table
   const generateMonthlyData = (): MonthlyData[] => {
     const months: MonthlyData[] = [];
-    
+
     // Create 6 months of data (most recent 6 months)
     for (let i = 0; i < 6; i++) {
       const currentDate = subMonths(new Date(), i);
       const monthStr = format(currentDate, "yyyy-MM");
-      
+
       // Filter cash flows for this month
       const monthlyIncome = incomeCashFlows
-        .filter(cf => cf.date.startsWith(monthStr))
+        .filter((cf) => cf.date.startsWith(monthStr))
         .reduce((sum, cf) => sum + cf.amount, 0);
-        
+
       const monthlyExpenses = expenseCashFlows
-        .filter(cf => cf.date.startsWith(monthStr))
+        .filter((cf) => cf.date.startsWith(monthStr))
         .reduce((sum, cf) => sum + cf.amount, 0);
-      
+
       // Mock maintenance data (in a real app, this would come from maintenance items)
-      const maintenanceCost = Math.round(monthlyExpenses * 0.2); 
-      
+      const maintenanceCost = Math.round(monthlyExpenses * 0.2);
+
       months.push({
         date: currentDate,
         month: format(currentDate, "MMM yyyy"),
         income: monthlyIncome,
         expenses: monthlyExpenses,
-        maintenance: maintenanceCost
+        maintenance: maintenanceCost,
       });
     }
-    
+
     // Sort by date (most recent first)
     return months.sort((a, b) => b.date.getTime() - a.date.getTime());
   };
-  
+
   const monthlyData = generateMonthlyData();
+  
+  // Function to get filtered data based on selected period and type
+  const getFilteredCashFlowData = (): any[] => {
+    // For demonstration, we'll just use the monthly data we already have
+    // In a real app, you would filter based on selectedPeriod and dateRange
+    return monthlyData.map(item => ({
+      ...item,
+      amount: item.income - item.expenses - item.maintenance, // Total net cash flow
+      income: item.income,
+      expenses: item.expenses,
+      maintenance: item.maintenance,
+      date: item.date,
+      month: item.month
+    }));
+  };
 
   return (
     <div className="space-y-6">
-      {/* Cash Flow Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Total Income</div>
-            <div className="text-2xl font-bold text-emerald-500">{formatCurrency(totalIncome)}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Total Expenses</div>
-            <div className="text-2xl font-bold text-red-500">{formatCurrency(totalExpenses)}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Net Cash Flow</div>
-            <div className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-              {formatCurrency(netCashFlow)}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-muted/50">
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Cash on Cash Return</div>
-            <div className="text-2xl font-bold">
-              {property.value && property.value > 0 
-                ? `${((netCashFlow * 12 / property.value) * 100).toFixed(1)}%` 
-                : 'N/A'}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Monthly Cash Flow Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Monthly Cash Flow</CardTitle>
+            <CardTitle>Property Cash Flow</CardTitle>
             <CardDescription>
               Monthly income and expenses breakdown
             </CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="month">Monthly</SelectItem>
-                <SelectItem value="quarter">Quarterly</SelectItem>
-                <SelectItem value="year">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="icon">
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
+          <FilterControls
+            timePeriods={timePeriods}
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+            propertyTypes={cashFlowTypes}
+            selectedType={selectedType}
+            onTypeChange={setSelectedType}
+            dateRange={dateRange}
+            onDateRangeChange={(range) => setDateRange(range)}
+            onGenerateReport={() => console.log("Generating report")}
+          />
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Month</TableHead>
-                <TableHead className="text-right">Income</TableHead>
-                <TableHead className="text-right">Expenses</TableHead>
-                <TableHead className="text-right">Maintenance</TableHead>
-                <TableHead className="text-right">Net Income</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {monthlyData.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>{item.month}</TableCell>
-                  <TableCell className="text-right">
-                    ${item.income.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    ${item.expenses.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    ${item.maintenance.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    ${(item.income - item.expenses - item.maintenance).toLocaleString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-      
-      {/* Cash Flow Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Latest cash flow entries</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cashFlows.length === 0 ? (
+          <BarChart
+            data={getFilteredCashFlowData()}
+            selectedType={selectedType}
+          />
+
+          <div className="mt-8">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    No transactions found
-                  </TableCell>
+                  <TableHead>Month</TableHead>
+                  <TableHead className="text-right">Income</TableHead>
+                  <TableHead className="text-right">Expenses</TableHead>
+                  <TableHead className="text-right">Maintenance</TableHead>
+                  <TableHead className="text-right">Net Income</TableHead>
                 </TableRow>
-              ) : (
-                cashFlows.slice(0, 5).map((cashFlow) => (
-                  <TableRow key={cashFlow.id}>
-                    <TableCell>{formatDate(cashFlow.date)}</TableCell>
-                    <TableCell className="font-medium">{cashFlow.description}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {cashFlow.type === 'income' ? (
-                          <ArrowUp className="mr-1 h-4 w-4 text-emerald-500" />
-                        ) : (
-                          <ArrowDown className="mr-1 h-4 w-4 text-red-500" />
-                        )}
-                        <span className="capitalize">{cashFlow.type}</span>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {getFilteredCashFlowData().map((item: MonthlyData, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell>{format(item.date, "MMM yyyy")}</TableCell>
+                    <TableCell className="text-right">
+                      ${item.income.toLocaleString()}
                     </TableCell>
-                    <TableCell className={`text-right ${cashFlow.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {formatCurrency(cashFlow.amount)}
+                    <TableCell className="text-right">
+                      ${item.expenses.toLocaleString()}
                     </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          cashFlow.status === "completed" ? "default" : 
-                          cashFlow.status === "pending" ? "secondary" : 
-                          "outline"
-                        }
-                      >
-                        {cashFlow.status.charAt(0).toUpperCase() + cashFlow.status.slice(1)}
-                      </Badge>
+                    <TableCell className="text-right">
+                      ${item.maintenance.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      $
+                      {(
+                        item.income -
+                        item.expenses -
+                        item.maintenance
+                      ).toLocaleString()}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          {cashFlows.length > 5 && (
-            <div className="flex justify-center mt-4">
-              <Button variant="outline">View All Transactions</Button>
-            </div>
-          )}
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
