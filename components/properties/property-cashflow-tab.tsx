@@ -112,11 +112,11 @@ export function PropertyCashFlowTab({
 
       // Filter cash flows for this month
       const monthlyIncome = incomeCashFlows
-        .filter((cf) => cf.date.startsWith(monthStr))
+        .filter((cf) => cf.timestamp.startsWith(monthStr))
         .reduce((sum, cf) => sum + cf.amount, 0);
 
       const monthlyExpenses = expenseCashFlows
-        .filter((cf) => cf.date.startsWith(monthStr))
+        .filter((cf) => cf.timestamp.startsWith(monthStr))
         .reduce((sum, cf) => sum + cf.amount, 0);
 
       // Mock maintenance data (in a real app, this would come from maintenance items)
@@ -155,7 +155,8 @@ export function PropertyCashFlowTab({
   // Function to handle successful cash flow addition
   const handleCashFlowSuccess = () => {
     setIsAddDialogOpen(false);
-    // In a real app, we would refetch the data here
+    // Trigger a refresh of the page to show the updated cash flow data
+    window.location.reload();
   };
 
   return (

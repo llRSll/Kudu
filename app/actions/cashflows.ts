@@ -7,9 +7,13 @@ export interface CashFlow {
   id: string
   property_id: string
   entity_id?: string | null
+  investment_id?: string | null
   user_id?: string
-  date: string
+  // date field removed as it's no longer in the database schema
+  timestamp: string
   description: string
+  transaction_type: string
+  debit_credit: 'debit' | 'credit'
   type: 'income' | 'expense'
   amount: number
   status: 'scheduled' | 'pending' | 'completed'
@@ -29,8 +33,8 @@ export async function fetchUpcomingCashFlows(propertyId: string): Promise<CashFl
     .from('cash_flows')
     .select('*')
     .eq('property_id', propertyId)
-    .gte('date', today.toISOString().split('T')[0])
-    .order('date')
+    .gte('timestamp', today.toISOString().split('T')[0])
+    .order('timestamp')
     .limit(5)
 
   if (error) {
@@ -58,14 +62,14 @@ export async function fetchCashFlows(
     .eq('property_id', propertyId)
   
   if (startDate) {
-    query = query.gte('date', startDate)
+    query = query.gte('timestamp', startDate)
   }
   
   if (endDate) {
-    query = query.lte('date', endDate)
+    query = query.lte('timestamp', endDate)
   }
   
-  const { data, error } = await query.order('date')
+  const { data, error } = await query.order('timestamp')
 
   if (error) {
     console.error('Error fetching cash flows:', error)
