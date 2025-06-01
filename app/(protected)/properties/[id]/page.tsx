@@ -61,7 +61,7 @@ export default async function PropertyPage({ params, searchParams }: PropertyPag
           upcomingCashFlows={upcomingCashFlows}
           cashFlows={allCashFlows}
           propertyDocuments={[]} // Will be populated from documents API later
-          initialTab={searchParams.tab || "overview"}
+          initialTab={searchParams?.tab ? String(searchParams.tab) : "overview"}
         />
       </Suspense>
     </div>

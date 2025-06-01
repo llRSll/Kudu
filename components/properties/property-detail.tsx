@@ -1,16 +1,39 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Building, Calendar, DollarSign, FileText, MapPin, MoreHorizontal, Pencil, TrendingUp, Users, Wrench } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Property } from "./types"
-import { PropertyWithAddress } from "@/lib/api/properties"
-import { FilterControls, BarChart, DateRangeSelector } from "./portfolio-summary"
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Building,
+  Calendar,
+  DollarSign,
+  FileText,
+  MapPin,
+  MoreHorizontal,
+  Pencil,
+  TrendingUp,
+  Users,
+  Wrench,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Property } from "./types";
+import { PropertyWithAddress } from "@/lib/api/properties";
+import {
+  FilterControls,
+  BarChart,
+  DateRangeSelector,
+} from "./portfolio-summary";
 import {
   Table,
   TableBody,
@@ -19,7 +42,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,112 +50,112 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { format } from "date-fns"
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
 
 // Extend Property interface for the detail view
 interface PropertyDetail {
-  id: string
-  address?: string
-  purchaseDate?: string | Date
-  tenants?: Tenant[]
-  maintenanceItems?: MaintenanceItem[]
-  documents?: Document[]
-  cashFlowData?: CashFlowItem[]
-  squareFeet?: number
-  yearBuilt?: number
-  zoning?: string
-  parkingSpaces?: number
-  bedrooms?: number
-  bathrooms?: number
-  description?: string
-  amenities?: string[] | unknown
-  upcomingCashFlows?: UpcomingCashFlow[]
-  valuationHistory?: ValuationRecord[]
+  id: string;
+  address?: string;
+  purchaseDate?: string | Date;
+  tenants?: Tenant[];
+  maintenanceItems?: MaintenanceItem[];
+  documents?: Document[];
+  cashFlowData?: CashFlowItem[];
+  squareFeet?: number;
+  yearBuilt?: number;
+  zoning?: string;
+  parkingSpaces?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  description?: string;
+  amenities?: string[] | unknown;
+  upcomingCashFlows?: UpcomingCashFlow[];
+  valuationHistory?: ValuationRecord[];
   // Include all other properties from Property interface
-  name?: string
-  location?: string
-  value?: number
-  income?: number
-  expenses?: number
-  occupancy?: number
-  status?: string
-  image?: string
-  type?: string
-  developmentStages?: DevelopmentStage[]
+  name?: string;
+  location?: string;
+  value?: number;
+  income?: number;
+  expenses?: number;
+  occupancy?: number;
+  status?: string;
+  image?: string;
+  type?: string;
+  developmentStages?: DevelopmentStage[];
 }
 
 interface Tenant {
-  id: number
-  name: string
-  leaseStart: Date
-  leaseEnd: Date
-  rentAmount: number
-  status: "active" | "late" | "ending"
+  id: number;
+  name: string;
+  leaseStart: Date;
+  leaseEnd: Date;
+  rentAmount: number;
+  status: "active" | "late" | "ending";
 }
 
 interface MaintenanceItem {
-  id: number
-  title: string
-  description: string
-  cost: number
-  date: Date
-  status: "scheduled" | "completed" | "pending"
+  id: number;
+  title: string;
+  description: string;
+  cost: number;
+  date: Date;
+  status: "scheduled" | "completed" | "pending";
 }
 
 interface Document {
-  id: number
-  name: string
-  type: string
-  uploadDate: Date
-  size: string
-  folderId?: number
+  id: number;
+  name: string;
+  type: string;
+  uploadDate: Date;
+  size: string;
+  folderId?: number;
 }
 
 interface CashFlowItem {
-  month: string
-  income: number
-  expenses: number
-  maintenance: number
-  date: Date
-  amount: number
-  [key: string]: number | string | Date
+  month: string;
+  income: number;
+  expenses: number;
+  maintenance: number;
+  date: Date;
+  amount: number;
+  [key: string]: number | string | Date;
 }
 
 interface UpcomingCashFlow {
-  id: number
-  date: Date
-  amount: number
-  type: "income" | "expense"
-  description: string
-  status: "scheduled" | "pending" | "completed"
+  id: number;
+  date: Date;
+  amount: number;
+  type: "income" | "expense";
+  description: string;
+  status: "scheduled" | "pending" | "completed";
 }
 
 interface ValuationRecord {
-  id: number
-  date: Date
-  value: number
-  changePercent: number
-  appraisedBy?: string
+  id: number;
+  date: Date;
+  value: number;
+  changePercent: number;
+  appraisedBy?: string;
 }
 
 interface DevelopmentStage {
-  id: number
-  name: string
-  description: string
-  plannedDate: Date
-  actualDate?: Date
-  budget: number
-  actualCost?: number
-  status: "planned" | "in_progress" | "completed" | "delayed"
-  completionPercentage: number
+  id: number;
+  name: string;
+  description: string;
+  plannedDate: Date;
+  actualDate?: Date;
+  budget: number;
+  actualCost?: number;
+  status: "planned" | "in_progress" | "completed" | "delayed";
+  completionPercentage: number;
 }
 
 interface DocumentFolder {
-  id: number
-  name: string
-  documents: Document[]
+  id: number;
+  name: string;
+  documents: Document[];
 }
 
 // Sample data for a property detail
@@ -155,32 +178,33 @@ const samplePropertyDetail: PropertyDetail = {
   parkingSpaces: 45,
   bedrooms: 0,
   bathrooms: 4,
-  description: "Modern commercial building in prime downtown location with excellent visibility and access to public transportation. Features open floor plans, high ceilings, and energy-efficient systems.",
+  description:
+    "Modern commercial building in prime downtown location with excellent visibility and access to public transportation. Features open floor plans, high ceilings, and energy-efficient systems.",
   amenities: [
     "Elevator",
     "HVAC System",
     "Security System",
     "Parking Garage",
     "Loading Dock",
-    "Fiber Internet"
+    "Fiber Internet",
   ],
   tenants: [
-    { 
-      id: 1, 
-      name: "ABC Corp", 
-      leaseStart: new Date(2022, 1, 1), 
-      leaseEnd: new Date(2025, 1, 1), 
-      rentAmount: 12500, 
-      status: "active" 
+    {
+      id: 1,
+      name: "ABC Corp",
+      leaseStart: new Date(2022, 1, 1),
+      leaseEnd: new Date(2025, 1, 1),
+      rentAmount: 12500,
+      status: "active",
     },
-    { 
-      id: 2, 
-      name: "XYZ Startup", 
-      leaseStart: new Date(2023, 3, 15), 
-      leaseEnd: new Date(2024, 3, 15), 
-      rentAmount: 6000, 
-      status: "ending" 
-    }
+    {
+      id: 2,
+      name: "XYZ Startup",
+      leaseStart: new Date(2023, 3, 15),
+      leaseEnd: new Date(2024, 3, 15),
+      rentAmount: 6000,
+      status: "ending",
+    },
   ],
   maintenanceItems: [
     {
@@ -189,7 +213,7 @@ const samplePropertyDetail: PropertyDetail = {
       description: "Replace faulty compressor in main HVAC system",
       cost: 3200,
       date: new Date(2023, 11, 10),
-      status: "completed"
+      status: "completed",
     },
     {
       id: 2,
@@ -197,7 +221,7 @@ const samplePropertyDetail: PropertyDetail = {
       description: "Annual roof inspection and minor repairs",
       cost: 1500,
       date: new Date(2024, 5, 20),
-      status: "scheduled"
+      status: "scheduled",
     },
     {
       id: 3,
@@ -205,8 +229,8 @@ const samplePropertyDetail: PropertyDetail = {
       description: "Update lobby furniture and paint",
       cost: 8500,
       date: new Date(2024, 3, 5),
-      status: "pending"
-    }
+      status: "pending",
+    },
   ],
   documents: [
     {
@@ -215,7 +239,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Legal",
       uploadDate: new Date(2020, 5, 10),
       size: "2.4 MB",
-      folderId: 1
+      folderId: 1,
     },
     {
       id: 2,
@@ -223,7 +247,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Insurance",
       uploadDate: new Date(2024, 0, 15),
       size: "1.8 MB",
-      folderId: 3
+      folderId: 3,
     },
     {
       id: 3,
@@ -231,7 +255,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Lease",
       uploadDate: new Date(2022, 0, 25),
       size: "3.1 MB",
-      folderId: 2
+      folderId: 2,
     },
     {
       id: 4,
@@ -239,7 +263,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Tax",
       uploadDate: new Date(2023, 3, 10),
       size: "1.2 MB",
-      folderId: 3
+      folderId: 3,
     },
     {
       id: 5,
@@ -247,7 +271,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Legal",
       uploadDate: new Date(2021, 8, 12),
       size: "3.6 MB",
-      folderId: 1
+      folderId: 1,
     },
     {
       id: 6,
@@ -255,7 +279,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Legal",
       uploadDate: new Date(2020, 5, 5),
       size: "8.2 MB",
-      folderId: 1
+      folderId: 1,
     },
     {
       id: 7,
@@ -263,7 +287,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Lease",
       uploadDate: new Date(2023, 3, 10),
       size: "2.9 MB",
-      folderId: 2
+      folderId: 2,
     },
     {
       id: 8,
@@ -271,7 +295,7 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Service",
       uploadDate: new Date(2023, 6, 18),
       size: "1.5 MB",
-      folderId: 4
+      folderId: 4,
     },
     {
       id: 9,
@@ -279,16 +303,58 @@ const samplePropertyDetail: PropertyDetail = {
       type: "Service",
       uploadDate: new Date(2023, 11, 5),
       size: "4.2 MB",
-      folderId: 4
-    }
+      folderId: 4,
+    },
   ],
   cashFlowData: [
-    { month: "Jan", income: 18500, expenses: 5200, maintenance: 800, date: new Date(2024, 0, 1), amount: 18500 },
-    { month: "Feb", income: 18500, expenses: 5100, maintenance: 0, date: new Date(2024, 1, 1), amount: 18500 },
-    { month: "Mar", income: 18500, expenses: 5300, maintenance: 1200, date: new Date(2024, 2, 1), amount: 18500 },
-    { month: "Apr", income: 18500, expenses: 5200, maintenance: 0, date: new Date(2024, 3, 1), amount: 18500 },
-    { month: "May", income: 18500, expenses: 5400, maintenance: 3200, date: new Date(2024, 4, 1), amount: 18500 },
-    { month: "Jun", income: 18500, expenses: 5250, maintenance: 0, date: new Date(2024, 5, 1), amount: 18500 },
+    {
+      month: "Jan",
+      income: 18500,
+      expenses: 5200,
+      maintenance: 800,
+      date: new Date(2024, 0, 1),
+      amount: 18500,
+    },
+    {
+      month: "Feb",
+      income: 18500,
+      expenses: 5100,
+      maintenance: 0,
+      date: new Date(2024, 1, 1),
+      amount: 18500,
+    },
+    {
+      month: "Mar",
+      income: 18500,
+      expenses: 5300,
+      maintenance: 1200,
+      date: new Date(2024, 2, 1),
+      amount: 18500,
+    },
+    {
+      month: "Apr",
+      income: 18500,
+      expenses: 5200,
+      maintenance: 0,
+      date: new Date(2024, 3, 1),
+      amount: 18500,
+    },
+    {
+      month: "May",
+      income: 18500,
+      expenses: 5400,
+      maintenance: 3200,
+      date: new Date(2024, 4, 1),
+      amount: 18500,
+    },
+    {
+      month: "Jun",
+      income: 18500,
+      expenses: 5250,
+      maintenance: 0,
+      date: new Date(2024, 5, 1),
+      amount: 18500,
+    },
   ],
   upcomingCashFlows: [
     {
@@ -297,7 +363,7 @@ const samplePropertyDetail: PropertyDetail = {
       amount: 18500,
       type: "income",
       description: "Tenant Rent - ABC Corp",
-      status: "scheduled"
+      status: "scheduled",
     },
     {
       id: 2,
@@ -305,7 +371,7 @@ const samplePropertyDetail: PropertyDetail = {
       amount: 6000,
       type: "income",
       description: "Tenant Rent - XYZ Startup",
-      status: "scheduled"
+      status: "scheduled",
     },
     {
       id: 3,
@@ -313,7 +379,7 @@ const samplePropertyDetail: PropertyDetail = {
       amount: 3200,
       type: "expense",
       description: "Property Tax Payment",
-      status: "scheduled"
+      status: "scheduled",
     },
     {
       id: 4,
@@ -321,7 +387,7 @@ const samplePropertyDetail: PropertyDetail = {
       amount: 1800,
       type: "expense",
       description: "Insurance Premium",
-      status: "pending"
+      status: "pending",
     },
     {
       id: 5,
@@ -329,8 +395,8 @@ const samplePropertyDetail: PropertyDetail = {
       amount: 18500,
       type: "income",
       description: "Tenant Rent - ABC Corp",
-      status: "pending"
-    }
+      status: "pending",
+    },
   ],
   valuationHistory: [
     {
@@ -338,29 +404,29 @@ const samplePropertyDetail: PropertyDetail = {
       date: new Date(2020, 5, 15),
       value: 2200000,
       changePercent: 0,
-      appraisedBy: "Smith & Associates"
+      appraisedBy: "Smith & Associates",
     },
     {
       id: 2,
       date: new Date(2021, 6, 10),
       value: 2320000,
       changePercent: 5.45,
-      appraisedBy: "Commercial Appraisers Inc."
+      appraisedBy: "Commercial Appraisers Inc.",
     },
     {
       id: 3,
       date: new Date(2022, 5, 25),
       value: 2400000,
       changePercent: 3.45,
-      appraisedBy: "Urban Property Valuations"
+      appraisedBy: "Urban Property Valuations",
     },
     {
       id: 4,
       date: new Date(2023, 7, 15),
       value: 2500000,
       changePercent: 4.17,
-      appraisedBy: "Smith & Associates"
-    }
+      appraisedBy: "Smith & Associates",
+    },
   ],
   developmentStages: [
     {
@@ -372,7 +438,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 1800000,
       actualCost: 1820000,
       status: "completed",
-      completionPercentage: 100
+      completionPercentage: 100,
     },
     {
       id: 2,
@@ -383,7 +449,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 75000,
       actualCost: 82000,
       status: "completed",
-      completionPercentage: 100
+      completionPercentage: 100,
     },
     {
       id: 3,
@@ -394,7 +460,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 350000,
       actualCost: 362000,
       status: "completed",
-      completionPercentage: 100
+      completionPercentage: 100,
     },
     {
       id: 4,
@@ -405,7 +471,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 420000,
       actualCost: 405000,
       status: "completed",
-      completionPercentage: 100
+      completionPercentage: 100,
     },
     {
       id: 5,
@@ -416,7 +482,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 380000,
       actualCost: 395000,
       status: "completed",
-      completionPercentage: 100
+      completionPercentage: 100,
     },
     {
       id: 6,
@@ -427,7 +493,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 450000,
       actualCost: 455000,
       status: "in_progress",
-      completionPercentage: 85
+      completionPercentage: 85,
     },
     {
       id: 7,
@@ -438,7 +504,7 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 520000,
       actualCost: undefined,
       status: "planned",
-      completionPercentage: 0
+      completionPercentage: 0,
     },
     {
       id: 8,
@@ -449,9 +515,9 @@ const samplePropertyDetail: PropertyDetail = {
       budget: 25000,
       actualCost: undefined,
       status: "planned",
-      completionPercentage: 0
-    }
-  ]
+      completionPercentage: 0,
+    },
+  ],
 };
 
 // Time periods for filter
@@ -477,40 +543,46 @@ const documentFolders = [
   { id: 2, name: "Tenant Leases" },
   { id: 3, name: "Financial Records" },
   { id: 4, name: "Maintenance Records" },
-  { id: 5, name: "Other Documents" }
+  { id: 5, name: "Other Documents" },
 ];
 
 // Updated interface in property-detail.tsx
 interface PropertyDetailProps {
-  propertyId?: number
-  initialTab?: string
+  propertyId?: number;
+  initialTab?: string;
 }
 
-export function PropertyDetail({ propertyId, initialTab = "overview" }: PropertyDetailProps) {
+export function PropertyDetail({
+  propertyId,
+  initialTab = "overview",
+}: PropertyDetailProps) {
   const router = useRouter();
   const [property] = useState<PropertyDetail>(samplePropertyDetail);
   const [selectedPeriod, setSelectedPeriod] = useState("6m");
   const [selectedType, setSelectedType] = useState("all");
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date } | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<
+    { from?: Date; to?: Date } | undefined
+  >(undefined);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(1); // Default to first folder
 
   // Calculate net income with null safety
   const income = property.income ?? 0;
   const expenses = property.expenses ?? 0;
   const netIncome = income - expenses;
-  const netIncomePercentage = income > 0 ? Math.round((netIncome / income) * 100) : 0;
-  
+  const netIncomePercentage =
+    income > 0 ? Math.round((netIncome / income) * 100) : 0;
+
   // Go back to property list
   const handleBack = () => {
     router.back();
   };
-  
+
   // Get filtered cash flow data
   const getFilteredCashFlowData = () => {
     if (!property.cashFlowData) return [];
-    
+
     let filteredData = [...property.cashFlowData];
-    
+
     // Apply period filter
     switch (selectedPeriod) {
       case "6m":
@@ -521,20 +593,21 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
         break;
       case "ytd":
         const currentYear = new Date().getFullYear();
-        filteredData = filteredData.filter(d => d.date.getFullYear() === currentYear);
+        filteredData = filteredData.filter(
+          (d) => d.date.getFullYear() === currentYear
+        );
         break;
       case "custom":
         if (dateRange?.from && dateRange?.to) {
-          filteredData = filteredData.filter(d => 
-            d.date >= dateRange.from! && 
-            d.date <= dateRange.to!
+          filteredData = filteredData.filter(
+            (d) => d.date >= dateRange.from! && d.date <= dateRange.to!
           );
         }
         break;
     }
-    
+
     // Update amounts based on selected type to ensure chart works properly
-    return filteredData.map(item => {
+    return filteredData.map((item) => {
       const result = { ...item };
       if (selectedType === "income") {
         result.amount = item.income;
@@ -563,7 +636,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
           Edit Property
         </Button>
       </div>
-      
+
       {/* Main content */}
       <Tabs defaultValue={initialTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -572,21 +645,29 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
           <TabsTrigger value="cashflow">Cash Flow</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
-        
+
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           <div className="grid gap-6 md:grid-cols-7">
             {/* Property image and main details */}
             <Card className="md:col-span-4">
               <div className="relative h-[300px] w-full overflow-hidden rounded-t-lg">
-                <img 
-                  src={property.image} 
-                  alt={property.name} 
+                <img
+                  src={property.image}
+                  alt={property.name}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute right-3 top-3">
-                  <Badge variant={property.status === "development" ? "secondary" : "default"}>
-                    {property.status === "development" ? "Development" : "Active"}
+                  <Badge
+                    variant={
+                      property.status === "development"
+                        ? "secondary"
+                        : "default"
+                    }
+                  >
+                    {property.status === "development"
+                      ? "Development"
+                      : "Active"}
                   </Badge>
                 </div>
               </div>
@@ -600,7 +681,9 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                     </CardDescription>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Property Type</div>
+                    <div className="text-sm text-muted-foreground">
+                      Property Type
+                    </div>
                     <div className="font-medium">{property.type}</div>
                   </div>
                 </div>
@@ -609,36 +692,52 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
                   <div>
                     <div className="text-sm text-muted-foreground">Value</div>
-                    <div className="font-medium text-lg">${(property.value ?? 0).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Monthly Income</div>
-                    <div className="font-medium text-lg">${(property.income ?? 0).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Monthly Expenses</div>
-                    <div className="font-medium text-lg">${(property.expenses ?? 0).toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Purchase Date</div>
                     <div className="font-medium text-lg">
-                      {property.purchaseDate ? format(property.purchaseDate, "MMM d, yyyy") : "N/A"}
+                      ${(property.value ?? 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      Monthly Income
+                    </div>
+                    <div className="font-medium text-lg">
+                      ${(property.income ?? 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      Monthly Expenses
+                    </div>
+                    <div className="font-medium text-lg">
+                      ${(property.expenses ?? 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      Purchase Date
+                    </div>
+                    <div className="font-medium text-lg">
+                      {property.purchaseDate
+                        ? format(property.purchaseDate, "MMM d, yyyy")
+                        : "N/A"}
                     </div>
                   </div>
                 </div>
-                
+
                 {property.status !== "development" && (
                   <div className="mt-6">
                     <div className="flex items-center justify-between">
                       <div className="text-sm">Occupancy</div>
-                      <div className="text-sm font-medium">{property.occupancy}%</div>
+                      <div className="text-sm font-medium">
+                        {property.occupancy}%
+                      </div>
                     </div>
                     <Progress value={property.occupancy} className="mt-2" />
                   </div>
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Summary cards */}
             <div className="space-y-6 md:col-span-3">
               <Card>
@@ -649,30 +748,38 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <div className="text-sm text-muted-foreground">Monthly Income</div>
+                        <div className="text-sm text-muted-foreground">
+                          Monthly Income
+                        </div>
                         <div className="text-2xl font-bold text-green-600">
                           ${(property.income ?? 0).toLocaleString()}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <div className="text-sm text-muted-foreground">Monthly Expenses</div>
+                        <div className="text-sm text-muted-foreground">
+                          Monthly Expenses
+                        </div>
                         <div className="text-2xl font-bold text-red-600">
                           ${(property.expenses ?? 0).toLocaleString()}
                         </div>
                       </div>
                     </div>
-                    
+
                     <Separator />
-                    
+
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">Net Monthly Income</div>
+                        <div className="text-sm text-muted-foreground">
+                          Net Monthly Income
+                        </div>
                         <div className="text-lg font-bold">
                           ${netIncome.toLocaleString()}
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">Profit Margin</div>
+                        <div className="text-sm text-muted-foreground">
+                          Profit Margin
+                        </div>
                         <div className="text-lg font-bold">
                           {netIncomePercentage}%
                         </div>
@@ -681,38 +788,51 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Quick info cards */}
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Tenants</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Tenants
+                    </CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{property.tenants?.length || 0}</div>
+                    <div className="text-2xl font-bold">
+                      {property.tenants?.length || 0}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      {property.tenants?.filter(t => t.status === "active").length || 0} Active
+                      {property.tenants?.filter((t) => t.status === "active")
+                        .length || 0}{" "}
+                      Active
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Maintenance</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Maintenance
+                    </CardTitle>
                     <Wrench className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{property.maintenanceItems?.length || 0}</div>
+                    <div className="text-2xl font-bold">
+                      {property.maintenanceItems?.length || 0}
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      {property.maintenanceItems?.filter(m => m.status === "pending").length || 0} Pending
+                      {property.maintenanceItems?.filter(
+                        (m) => m.status === "pending"
+                      ).length || 0}{" "}
+                      Pending
                     </p>
                   </CardContent>
                 </Card>
               </div>
             </div>
           </div>
-          
+
           {/* Property Details Section */}
           <Card>
             <CardHeader>
@@ -721,55 +841,81 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Square Feet</div>
-                  <div className="font-medium">{property.squareFeet?.toLocaleString() || "N/A"}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Square Feet
+                  </div>
+                  <div className="font-medium">
+                    {property.squareFeet?.toLocaleString() || "N/A"}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Year Built</div>
-                  <div className="font-medium">{property.yearBuilt || "N/A"}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Year Built
+                  </div>
+                  <div className="font-medium">
+                    {property.yearBuilt || "N/A"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Zoning</div>
                   <div className="font-medium">{property.zoning || "N/A"}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Parking Spaces</div>
-                  <div className="font-medium">{property.parkingSpaces || "N/A"}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Parking Spaces
+                  </div>
+                  <div className="font-medium">
+                    {property.parkingSpaces || "N/A"}
+                  </div>
                 </div>
                 {property.bedrooms !== undefined && (
                   <div>
-                    <div className="text-sm text-muted-foreground">Bedrooms</div>
+                    <div className="text-sm text-muted-foreground">
+                      Bedrooms
+                    </div>
                     <div className="font-medium">{property.bedrooms}</div>
                   </div>
                 )}
                 {property.bathrooms !== undefined && (
                   <div>
-                    <div className="text-sm text-muted-foreground">Bathrooms</div>
+                    <div className="text-sm text-muted-foreground">
+                      Bathrooms
+                    </div>
                     <div className="font-medium">{property.bathrooms}</div>
                   </div>
                 )}
               </div>
-              
+
               {property.description && (
                 <div className="mt-4">
-                  <div className="text-sm text-muted-foreground">Description</div>
+                  <div className="text-sm text-muted-foreground">
+                    Description
+                  </div>
                   <div className="mt-1">{property.description}</div>
                 </div>
               )}
-              
-              {property.amenities && Array.isArray(property.amenities) && property.amenities.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-sm text-muted-foreground mb-2">Amenities</div>
-                  <div className="flex flex-wrap gap-2">
-                    {property.amenities.map((amenity: string, index: number) => (
-                      <Badge key={index} variant="outline">{amenity}</Badge>
-                    ))}
+
+              {property.amenities &&
+                Array.isArray(property.amenities) &&
+                property.amenities.length > 0 && (
+                  <div className="mt-4">
+                    <div className="text-sm text-muted-foreground mb-2">
+                      Amenities
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {property.amenities.map(
+                        (amenity: string, index: number) => (
+                          <Badge key={index} variant="outline">
+                            {amenity}
+                          </Badge>
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
-          
+
           {/* Upcoming Cash Flows Section */}
           <Card>
             <CardHeader>
@@ -788,12 +934,20 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {property.upcomingCashFlows?.map(cashFlow => (
+                  {property.upcomingCashFlows?.map((cashFlow) => (
                     <TableRow key={cashFlow.id}>
-                      <TableCell>{format(cashFlow.date, "MMM d, yyyy")}</TableCell>
+                      <TableCell>
+                        {format(cashFlow.date, "MMM d, yyyy")}
+                      </TableCell>
                       <TableCell>{cashFlow.description}</TableCell>
                       <TableCell>
-                        <Badge variant={cashFlow.type === "income" ? "default" : "destructive"}>
+                        <Badge
+                          variant={
+                            cashFlow.type === "income"
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
                           {cashFlow.type === "income" ? "Income" : "Expense"}
                         </Badge>
                       </TableCell>
@@ -801,14 +955,20 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                         ${cashFlow.amount.toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           variant={
-                            cashFlow.status === "scheduled" ? "outline" : 
-                            cashFlow.status === "pending" ? "secondary" : "default"
+                            cashFlow.status === "scheduled"
+                              ? "outline"
+                              : cashFlow.status === "pending"
+                              ? "secondary"
+                              : "default"
                           }
                         >
-                          {cashFlow.status === "scheduled" ? "Scheduled" : 
-                           cashFlow.status === "pending" ? "Pending" : "Completed"}
+                          {cashFlow.status === "scheduled"
+                            ? "Scheduled"
+                            : cashFlow.status === "pending"
+                            ? "Pending"
+                            : "Completed"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -818,7 +978,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Financial & Tenants Tab */}
         <TabsContent value="financial" className="mt-6 space-y-6">
           <div className="grid gap-6 md:grid-cols-3">
@@ -826,7 +986,9 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>Tenants</CardTitle>
-                <CardDescription>Current and upcoming tenant information</CardDescription>
+                <CardDescription>
+                  Current and upcoming tenant information
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -839,22 +1001,33 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {property.tenants?.map(tenant => (
+                    {property.tenants?.map((tenant) => (
                       <TableRow key={tenant.id}>
-                        <TableCell className="font-medium">{tenant.name}</TableCell>
-                        <TableCell>
-                          {format(tenant.leaseStart, "MMM d, yyyy")} - {format(tenant.leaseEnd, "MMM d, yyyy")}
+                        <TableCell className="font-medium">
+                          {tenant.name}
                         </TableCell>
-                        <TableCell>${tenant.rentAmount.toLocaleString()}</TableCell>
+                        <TableCell>
+                          {format(tenant.leaseStart, "MMM d, yyyy")} -{" "}
+                          {format(tenant.leaseEnd, "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          ${tenant.rentAmount.toLocaleString()}
+                        </TableCell>
                         <TableCell>
                           <Badge
                             variant={
-                              tenant.status === "active" ? "default" : 
-                              tenant.status === "late" ? "destructive" : "outline"
+                              tenant.status === "active"
+                                ? "default"
+                                : tenant.status === "late"
+                                ? "destructive"
+                                : "outline"
                             }
                           >
-                            {tenant.status === "active" ? "Active" : 
-                             tenant.status === "late" ? "Late Payment" : "Ending Soon"}
+                            {tenant.status === "active"
+                              ? "Active"
+                              : tenant.status === "late"
+                              ? "Late Payment"
+                              : "Ending Soon"}
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -866,33 +1039,45 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 <Button variant="outline">Add Tenant</Button>
               </CardFooter>
             </Card>
-            
+
             {/* Financial Summary */}
             <Card>
               <CardHeader>
                 <CardTitle>Financial Details</CardTitle>
-                <CardDescription>Property financial information</CardDescription>
+                <CardDescription>
+                  Property financial information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Property Value</div>
-                  <div className="text-xl font-bold">${(property.value ?? 0).toLocaleString()}</div>
+                  <div className="text-sm text-muted-foreground">
+                    Property Value
+                  </div>
+                  <div className="text-xl font-bold">
+                    ${(property.value ?? 0).toLocaleString()}
+                  </div>
                 </div>
                 <Separator />
                 <div>
-                  <div className="text-sm text-muted-foreground">Annual Income</div>
+                  <div className="text-sm text-muted-foreground">
+                    Annual Income
+                  </div>
                   <div className="text-lg font-medium text-green-600">
                     ${((property.income ?? 0) * 12).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Annual Expenses</div>
+                  <div className="text-sm text-muted-foreground">
+                    Annual Expenses
+                  </div>
                   <div className="text-lg font-medium text-red-600">
                     ${((property.expenses ?? 0) * 12).toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Annual Net Income</div>
+                  <div className="text-sm text-muted-foreground">
+                    Annual Net Income
+                  </div>
                   <div className="text-lg font-medium">
                     ${(netIncome * 12).toLocaleString()}
                   </div>
@@ -901,13 +1086,16 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 <div>
                   <div className="text-sm text-muted-foreground">Cap Rate</div>
                   <div className="text-xl font-bold">
-                    {property.value ? ((netIncome * 12 / property.value) * 100).toFixed(2) : "N/A"}%
+                    {property.value
+                      ? (((netIncome * 12) / property.value) * 100).toFixed(2)
+                      : "N/A"}
+                    %
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Valuation History Section */}
           <Card>
             <CardHeader>
@@ -925,20 +1113,24 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {property.valuationHistory?.map(valuation => (
+                  {property.valuationHistory?.map((valuation) => (
                     <TableRow key={valuation.id}>
-                      <TableCell>{format(valuation.date, "MMM d, yyyy")}</TableCell>
+                      <TableCell>
+                        {format(valuation.date, "MMM d, yyyy")}
+                      </TableCell>
                       <TableCell className="font-medium">
                         ${valuation.value.toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        <span className={
-                          valuation.changePercent > 0 
-                            ? "text-green-600" 
-                            : valuation.changePercent < 0 
-                              ? "text-red-600" 
+                        <span
+                          className={
+                            valuation.changePercent > 0
+                              ? "text-green-600"
+                              : valuation.changePercent < 0
+                              ? "text-red-600"
                               : ""
-                        }>
+                          }
+                        >
                           {valuation.changePercent > 0 ? "+" : ""}
                           {valuation.changePercent}%
                         </span>
@@ -948,7 +1140,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   ))}
                 </TableBody>
               </Table>
-              
+
               <div className="mt-4 flex justify-end">
                 <Button variant="outline" size="sm">
                   Add New Valuation
@@ -956,12 +1148,14 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Maintenance Section */}
           <Card>
             <CardHeader>
               <CardTitle>Maintenance Schedule</CardTitle>
-              <CardDescription>Upcoming and completed maintenance items</CardDescription>
+              <CardDescription>
+                Upcoming and completed maintenance items
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -975,23 +1169,31 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {property.maintenanceItems?.map(item => (
+                  {property.maintenanceItems?.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <div className="font-medium">{item.title}</div>
-                        <div className="text-sm text-muted-foreground">{item.description}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {item.description}
+                        </div>
                       </TableCell>
                       <TableCell>{format(item.date, "MMM d, yyyy")}</TableCell>
                       <TableCell>${item.cost.toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge
                           variant={
-                            item.status === "completed" ? "default" : 
-                            item.status === "pending" ? "secondary" : "outline"
+                            item.status === "completed"
+                              ? "default"
+                              : item.status === "pending"
+                              ? "secondary"
+                              : "outline"
                           }
                         >
-                          {item.status === "completed" ? "Completed" : 
-                           item.status === "pending" ? "Pending" : "Scheduled"}
+                          {item.status === "completed"
+                            ? "Completed"
+                            : item.status === "pending"
+                            ? "Pending"
+                            : "Scheduled"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -1005,9 +1207,13 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>View Details</DropdownMenuItem>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
+                            <DropdownMenuItem>
+                              Mark as Completed
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -1020,13 +1226,15 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
               <Button variant="outline">Add Maintenance Item</Button>
             </CardFooter>
           </Card>
-          
+
           {/* Development Stages Section */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Development Stages</CardTitle>
-                <CardDescription>Construction and development progress</CardDescription>
+                <CardDescription>
+                  Construction and development progress
+                </CardDescription>
               </div>
               <Button>Add Stage</Button>
             </CardHeader>
@@ -1037,51 +1245,84 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-medium">Overall Progress</div>
                     <div className="text-sm font-medium">
-                      {property.developmentStages?.filter(s => s.status === "completed").length || 0} / {property.developmentStages?.length || 0} Stages Completed
+                      {property.developmentStages?.filter(
+                        (s) => s.status === "completed"
+                      ).length || 0}{" "}
+                      / {property.developmentStages?.length || 0} Stages
+                      Completed
                     </div>
                   </div>
-                  <Progress 
+                  <Progress
                     value={
-                      property.developmentStages && property.developmentStages.length > 0
-                        ? (property.developmentStages.filter(s => s.status === "completed").length / property.developmentStages.length) * 100
+                      property.developmentStages &&
+                      property.developmentStages.length > 0
+                        ? (property.developmentStages.filter(
+                            (s) => s.status === "completed"
+                          ).length /
+                            property.developmentStages.length) *
+                          100
                         : 0
-                    } 
+                    }
                     className="h-2"
                   />
-                  
+
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
-                      <div className="text-sm text-muted-foreground">Budget</div>
+                      <div className="text-sm text-muted-foreground">
+                        Budget
+                      </div>
                       <div className="font-medium">
-                        ${property.developmentStages?.reduce((sum, stage) => sum + stage.budget, 0).toLocaleString() || "0"}
+                        $
+                        {property.developmentStages
+                          ?.reduce((sum, stage) => sum + stage.budget, 0)
+                          .toLocaleString() || "0"}
                       </div>
                     </div>
                     <div>
-                      <div className="text-sm text-muted-foreground">Actual Costs</div>
+                      <div className="text-sm text-muted-foreground">
+                        Actual Costs
+                      </div>
                       <div className="font-medium">
-                        ${property.developmentStages?.reduce((sum, stage) => sum + (stage.actualCost || 0), 0).toLocaleString() || "0"}
+                        $
+                        {property.developmentStages
+                          ?.reduce(
+                            (sum, stage) => sum + (stage.actualCost || 0),
+                            0
+                          )
+                          .toLocaleString() || "0"}
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Development Stages List */}
                 <div className="space-y-4">
-                  {property.developmentStages?.map(stage => (
-                    <div key={stage.id} className="border rounded-lg overflow-hidden">
+                  {property.developmentStages?.map((stage) => (
+                    <div
+                      key={stage.id}
+                      className="border rounded-lg overflow-hidden"
+                    >
                       <div className="bg-muted p-3 flex items-center justify-between">
                         <div className="font-medium flex items-center">
-                          <Badge 
+                          <Badge
                             variant={
-                              stage.status === "completed" ? "default" : 
-                              stage.status === "in_progress" ? "secondary" : 
-                              stage.status === "delayed" ? "destructive" : "outline"
+                              stage.status === "completed"
+                                ? "default"
+                                : stage.status === "in_progress"
+                                ? "secondary"
+                                : stage.status === "delayed"
+                                ? "destructive"
+                                : "outline"
                             }
                             className="mr-2"
                           >
-                            {stage.status === "completed" ? "Completed" : 
-                             stage.status === "in_progress" ? "In Progress" : 
-                             stage.status === "delayed" ? "Delayed" : "Planned"}
+                            {stage.status === "completed"
+                              ? "Completed"
+                              : stage.status === "in_progress"
+                              ? "In Progress"
+                              : stage.status === "delayed"
+                              ? "Delayed"
+                              : "Planned"}
                           </Badge>
                           {stage.name}
                         </div>
@@ -1096,42 +1337,65 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                             <DropdownMenuItem>Edit Stage</DropdownMenuItem>
                             <DropdownMenuItem>Update Progress</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                       <div className="p-4">
-                        <div className="text-sm text-muted-foreground mb-2">{stage.description}</div>
-                        
+                        <div className="text-sm text-muted-foreground mb-2">
+                          {stage.description}
+                        </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                           <div>
-                            <div className="text-xs text-muted-foreground">Planned Date</div>
-                            <div className="text-sm">{format(stage.plannedDate, "MMM d, yyyy")}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Actual Date</div>
+                            <div className="text-xs text-muted-foreground">
+                              Planned Date
+                            </div>
                             <div className="text-sm">
-                              {stage.actualDate ? format(stage.actualDate, "MMM d, yyyy") : "Pending"}
+                              {format(stage.plannedDate, "MMM d, yyyy")}
                             </div>
                           </div>
                           <div>
-                            <div className="text-xs text-muted-foreground">Budget</div>
-                            <div className="text-sm">${stage.budget.toLocaleString()}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Actual Date
+                            </div>
+                            <div className="text-sm">
+                              {stage.actualDate
+                                ? format(stage.actualDate, "MMM d, yyyy")
+                                : "Pending"}
+                            </div>
                           </div>
                           <div>
-                            <div className="text-xs text-muted-foreground">Actual Cost</div>
+                            <div className="text-xs text-muted-foreground">
+                              Budget
+                            </div>
                             <div className="text-sm">
-                              {stage.actualCost ? `$${stage.actualCost.toLocaleString()}` : "Pending"}
+                              ${stage.budget.toLocaleString()}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">
+                              Actual Cost
+                            </div>
+                            <div className="text-sm">
+                              {stage.actualCost
+                                ? `$${stage.actualCost.toLocaleString()}`
+                                : "Pending"}
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
                             <div>Completion</div>
                             <div>{stage.completionPercentage}%</div>
                           </div>
-                          <Progress value={stage.completionPercentage} className="h-1" />
+                          <Progress
+                            value={stage.completionPercentage}
+                            className="h-1"
+                          />
                         </div>
                       </div>
                     </div>
@@ -1141,14 +1405,16 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Cash Flow Tab */}
         <TabsContent value="cashflow" className="mt-6 space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Property Cash Flow</CardTitle>
-                <CardDescription>Monthly income and expenses breakdown</CardDescription>
+                <CardDescription>
+                  Monthly income and expenses breakdown
+                </CardDescription>
               </div>
               <FilterControls
                 timePeriods={timePeriods}
@@ -1163,8 +1429,11 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
               />
             </CardHeader>
             <CardContent>
-              <BarChart data={getFilteredCashFlowData()} selectedType={selectedType} />
-              
+              <BarChart
+                data={getFilteredCashFlowData()}
+                selectedType={selectedType}
+              />
+
               <div className="mt-8">
                 <Table>
                   <TableHeader>
@@ -1180,11 +1449,22 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                     {getFilteredCashFlowData().map((item, index) => (
                       <TableRow key={index}>
                         <TableCell>{format(item.date, "MMM yyyy")}</TableCell>
-                        <TableCell className="text-right">${item.income.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">${item.expenses.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">${item.maintenance.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">
+                          ${item.income.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${item.expenses.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${item.maintenance.toLocaleString()}
+                        </TableCell>
                         <TableCell className="text-right font-medium">
-                          ${(item.income - item.expenses - item.maintenance).toLocaleString()}
+                          $
+                          {(
+                            item.income -
+                            item.expenses -
+                            item.maintenance
+                          ).toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1194,7 +1474,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
           <Card>
@@ -1202,7 +1482,9 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Property Documents</CardTitle>
-                  <CardDescription>Upload and manage property documents</CardDescription>
+                  <CardDescription>
+                    Upload and manage property documents
+                  </CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline">New Folder</Button>
@@ -1215,12 +1497,12 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                 {/* Folders sidebar */}
                 <div className="space-y-1 md:border-r pr-4">
                   <div className="font-medium text-sm mb-3">Folders</div>
-                  {documentFolders.map(folder => (
-                    <div 
+                  {documentFolders.map((folder) => (
+                    <div
                       key={folder.id}
                       className={`flex items-center gap-2 px-2 py-2 rounded cursor-pointer ${
-                        selectedFolder === folder.id 
-                          ? "bg-accent text-accent-foreground" 
+                        selectedFolder === folder.id
+                          ? "bg-accent text-accent-foreground"
                           : "hover:bg-accent/50"
                       }`}
                       onClick={() => setSelectedFolder(folder.id)}
@@ -1228,11 +1510,13 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                       <FileText className="h-4 w-4" />
                       <span className="text-sm">{folder.name}</span>
                       <span className="ml-auto text-xs text-muted-foreground">
-                        {property.documents?.filter(doc => doc.folderId === folder.id).length || 0}
+                        {property.documents?.filter(
+                          (doc) => doc.folderId === folder.id
+                        ).length || 0}
                       </span>
                     </div>
                   ))}
-                  <div 
+                  <div
                     className="flex items-center gap-2 px-2 py-2 rounded cursor-pointer hover:bg-accent/50"
                     onClick={() => setSelectedFolder(null)}
                   >
@@ -1243,7 +1527,7 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Document list */}
                 <div className="md:col-span-3">
                   <Table>
@@ -1258,47 +1542,70 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
                     </TableHeader>
                     <TableBody>
                       {property.documents
-                        ?.filter(doc => selectedFolder === null || doc.folderId === selectedFolder)
-                        .map(doc => (
+                        ?.filter(
+                          (doc) =>
+                            selectedFolder === null ||
+                            doc.folderId === selectedFolder
+                        )
+                        .map((doc) => (
                           <TableRow key={doc.id}>
                             <TableCell className="font-medium flex items-center">
                               <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
                               {doc.name}
                             </TableCell>
                             <TableCell>{doc.type}</TableCell>
-                            <TableCell>{format(doc.uploadDate, "MMM d, yyyy")}</TableCell>
+                            <TableCell>
+                              {format(doc.uploadDate, "MMM d, yyyy")}
+                            </TableCell>
                             <TableCell>{doc.size}</TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="ghost" size="sm">View</Button>
-                                <Button variant="ghost" size="sm">Download</Button>
+                                <Button variant="ghost" size="sm">
+                                  View
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  Download
+                                </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
                                       <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">More options</span>
+                                      <span className="sr-only">
+                                        More options
+                                      </span>
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem>Rename</DropdownMenuItem>
-                                    <DropdownMenuItem>Move to Folder</DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      Move to Folder
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem>Replace</DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive">
+                                      Delete
+                                    </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </div>
                             </TableCell>
                           </TableRow>
                         ))}
-                      
-                      {(selectedFolder !== null && property.documents?.filter(doc => doc.folderId === selectedFolder).length === 0) && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            This folder is empty. Upload documents or move them here.
-                          </TableCell>
-                        </TableRow>
-                      )}
+
+                      {selectedFolder !== null &&
+                        property.documents?.filter(
+                          (doc) => doc.folderId === selectedFolder
+                        ).length === 0 && (
+                          <TableRow>
+                            <TableCell
+                              colSpan={5}
+                              className="text-center py-8 text-muted-foreground"
+                            >
+                              This folder is empty. Upload documents or move
+                              them here.
+                            </TableCell>
+                          </TableRow>
+                        )}
                     </TableBody>
                   </Table>
                 </div>
@@ -1308,5 +1615,5 @@ export function PropertyDetail({ propertyId, initialTab = "overview" }: Property
         </TabsContent>
       </Tabs>
     </div>
-  )
-} 
+  );
+}

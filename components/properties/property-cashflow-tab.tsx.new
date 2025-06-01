@@ -42,7 +42,18 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { Property } from "@/app/actions/properties";
-import { CashFlow } from "@/app/actions/cashflows";
+
+interface CashFlow {
+  id: string;
+  property_id: string;
+  date: string;
+  description: string;
+  type: "income" | "expense";
+  amount: number;
+  status: "scheduled" | "pending" | "completed";
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface MonthlyData {
   date: Date;
