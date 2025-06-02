@@ -69,18 +69,17 @@ export function DeleteCashFlowDialog({ cashFlow, onSuccess, children }: DeleteCa
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Cash Flow</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete this cash flow entry?
-            <div className="mt-2 p-3 bg-muted rounded-md">
-              <div className="text-sm">
-                <div><strong>Description:</strong> {cashFlow.description}</div>
-                <div><strong>Amount:</strong> ${cashFlow.amount.toLocaleString()}</div>
-                <div><strong>Type:</strong> {cashFlow.debit_credit === "CREDIT" ? "Income" : "Expense"}</div>
-                <div><strong>Transaction Type:</strong> {cashFlow.transaction_type}</div>
-              </div>
-            </div>
-            This action cannot be undone.
+            Are you sure you want to delete this cash flow entry? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="mt-2 p-3 bg-muted rounded-md">
+          <div className="text-sm">
+            <div><strong>Description:</strong> {cashFlow.description}</div>
+            <div><strong>Amount:</strong> ${cashFlow.amount.toLocaleString()}</div>
+            <div><strong>Type:</strong> {cashFlow.debit_credit === "CREDIT" ? "Income" : "Expense"}</div>
+            <div><strong>Transaction Type:</strong> {cashFlow.transaction_type}</div>
+          </div>
+        </div>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction

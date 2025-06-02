@@ -26,6 +26,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Property } from "@/app/actions/properties";
 import { editCashFlowSchema, EditCashFlowFormValues } from "./cash-flow-schema";
@@ -136,15 +137,21 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="text-sm text-muted-foreground">Loading cash flow data...</div>
+      <div className="space-y-6 min-h-[500px]">
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="mt-2 text-sm text-muted-foreground">
+            Loading cash flow data...
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="min-h-[500px]">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="timestamp"
@@ -274,5 +281,6 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
         </DialogFooter>
       </form>
     </Form>
+    </div>
   );
 }
