@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/lib/auth-context";
 import toast from "react-hot-toast";
-import { addCashFlow } from "@/app/actions/cashflows";
+import { updateCashFlow, getCashFlowById } from "@/app/actions/cashflows";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,43 +27,77 @@ import {
 } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { AddCashFlowFormProps } from "./cash-flow-types";
-import { cashFlowSchema, CashFlowFormValues } from "./cash-flow-schema";
+import { Property } from "@/app/actions/properties";
+import { editCashFlowSchema, EditCashFlowFormValues } from "./cash-flow-schema";
 import { TRANSACTION_TYPES } from "./transaction-types";
+import { CashFlow } from "@/app/actions/cashflows";
 
+interface EditCashFlowFormProps {
+  property: Property;
+  cashFlowId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
 
-
-export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
+export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: EditCashFlowFormProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Use current date and time
-  const currentDateTime = new Date();
-  
-  const form = useForm<CashFlowFormValues>({
-    resolver: zodResolver(cashFlowSchema),
+  const form = useForm<EditCashFlowFormValues>({
+    resolver: zodResolver(editCashFlowSchema),
     defaultValues: {
-      timestamp: currentDateTime,
+      timestamp: new Date(),
       description: "",
       transaction_type: "",
-      amount: undefined,
-      debit_credit: "CREDIT", // Default to CREDIT (income)
+      amount: 0,
+      debit_credit: "CREDIT",
     },
   });
+  
+  // Load existing cash flow data
+  useEffect(() => {
+    const loadCashFlow = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getCashFlowById(cashFlowId);
+        if (result.success && result.data) {
+          const cashFlow = result.data;
+          form.reset({
+            timestamp: new Date(cashFlow.timestamp),
+            description: cashFlow.description,
+            transaction_type: cashFlow.transaction_type,
+            amount: cashFlow.amount,
+            debit_credit: cashFlow.debit_credit,
+          });
+        } else {
+          toast.error(result.error || "Failed to load cash flow data");
+          onCancel();
+        }
+      } catch (error) {
+        console.error("Error loading cash flow:", error);
+        toast.error("Failed to load cash flow data");
+        onCancel();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCashFlow();
+  }, [cashFlowId, form, onCancel]);
   
   // Helper function to update debit_credit type when transaction_type changes
   const handleTransactionTypeChange = (type: string) => {
     const selectedType = TRANSACTION_TYPES.find(t => t.value === type);
     if (selectedType) {
-      // Set debit_credit based on the transaction type
       form.setValue("debit_credit", selectedType.defaultType as "DEBIT" | "CREDIT");
     }
     form.setValue("transaction_type", type);
   };
 
-  async function onSubmit(values: CashFlowFormValues) {
+  async function onSubmit(values: EditCashFlowFormValues) {
     if (!user) {
-      toast.error("You must be logged in to add a cash flow");
+      toast.error("You must be logged in to update a cash flow");
       return;
     }
     
@@ -73,11 +107,7 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
       // Format the timestamp with full date and time
       const formattedTimestamp = format(values.timestamp, "yyyy-MM-dd'T'HH:mm:ss");
       
-      const cashFlowData = {
-        property_id: property.id,
-        user_id: user.id,
-        entity_id: property.entity_id || null,
-        investment_id: property.investment_id || null,
+      const updates = {
         timestamp: formattedTimestamp,
         description: values.description,
         transaction_type: values.transaction_type,
@@ -85,25 +115,31 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
         debit_credit: values.debit_credit,
       };
       
-      // Log the payload before sending
-      console.log('Cash flow data being sent to server:', cashFlowData);
+      console.log('Cash flow updates being sent to server:', updates);
       
-      const result = await addCashFlow(cashFlowData);
+      const result = await updateCashFlow(cashFlowId, updates);
       
       if (result.success && result.data) {
-        toast.success("Cash flow entry added successfully");
-        form.reset();
+        toast.success("Cash flow updated successfully");
         onSuccess();
       } else {
-        throw new Error(result.error || "Failed to add cash flow");
+        throw new Error(result.error || "Failed to update cash flow");
       }
     } catch (error) {
-      console.error("Error adding cash flow:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to add cash flow. Please try again.";
+      console.error("Error updating cash flow:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to update cash flow. Please try again.";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="text-sm text-muted-foreground">Loading cash flow data...</div>
+      </div>
+    );
   }
 
   return (
@@ -143,7 +179,7 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
               <FormLabel>Transaction Type</FormLabel>
               <Select 
                 onValueChange={(value) => handleTransactionTypeChange(value)} 
-                defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -186,7 +222,7 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
                 <FormLabel>Type</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -224,8 +260,16 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
         </div>
         
         <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Adding..." : "Add Cash Flow"}
+            {isSubmitting ? "Updating..." : "Update Cash Flow"}
           </Button>
         </DialogFooter>
       </form>

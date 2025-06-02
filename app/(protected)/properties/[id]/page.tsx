@@ -11,6 +11,7 @@ import {
 import {
   fetchUpcomingCashFlows,
   fetchCashFlows,
+  fetchFilteredCashFlows,
 } from "@/app/actions/cashflows";
 import { Suspense } from "react";
 
@@ -27,18 +28,31 @@ export default async function PropertyPage({
   params,
   searchParams,
 }: PropertyPageProps) {
-  // Await searchParams to resolve dynamic API
-  const param = await params;
-  const tab = searchParams?.tab ? String(searchParams.tab) : "overview";
+  // Await both params and searchParams to resolve dynamic API values
+  const [resolvedParams, resolvedSearchParams] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+
+  const propertyId = resolvedParams.id;
+  const tab = resolvedSearchParams?.tab
+    ? String(resolvedSearchParams.tab)
+    : "overview";
 
   // Fetch property data
-  const property = await fetchPropertyById(params.id);
+  const property = await fetchPropertyById(propertyId);
 
   // If property not found, return 404
   if (!property) {
     notFound();
   }
 
+  // Calculate date range (last 6 months for default)
+  const today = new Date();
+  const sixMonthsAgo = new Date(today);
+  sixMonthsAgo.setMonth(today.getMonth() - 6);
+  const startDate = sixMonthsAgo.toISOString().split('T')[0];
+  
   // Fetch all related data in parallel for efficiency
   const [
     financialSummary, // Now using our mocked implementation
@@ -48,12 +62,12 @@ export default async function PropertyPage({
     upcomingCashFlows,
     allCashFlows,
   ] = await Promise.all([
-    fetchFinancialSummary(param.id), // This will now return hardcoded data
-    fetchTenants(param.id),
-    fetchMaintenanceItems(param?.id),
-    fetchPropertyImages(param.id),
-    fetchUpcomingCashFlows(param.id),
-    fetchCashFlows(param.id),
+    fetchFinancialSummary(propertyId), // This will now return hardcoded data
+    fetchTenants(propertyId),
+    fetchMaintenanceItems(propertyId),
+    fetchPropertyImages(propertyId),
+    fetchUpcomingCashFlows(propertyId),
+    fetchCashFlows(propertyId, startDate), // Fetch last 6 months of data by default
   ]);
 
   return (

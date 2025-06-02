@@ -20,4 +20,8 @@ export const cashFlowSchema = z.object({
   }),
 });
 
+// Schema for EditCashFlowForm (similar but for editing)
+export const editCashFlowSchema = cashFlowSchema;
+
 export type CashFlowFormValues = z.infer<typeof cashFlowSchema>;
+export type EditCashFlowFormValues = z.infer<typeof editCashFlowSchema>;

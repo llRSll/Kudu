@@ -28,10 +28,15 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Loader2 } from "lucide-react";
 import { Property } from "@/app/actions/properties";
-import { CashFlow, fetchFilteredCashFlows } from "@/app/actions/cashflows";
+import {
+  CashFlow,
+  fetchCashFlows,
+  fetchFilteredCashFlows,
+} from "@/app/actions/cashflows";
 import { FilterControls } from "./portfolio-summary";
-import { BarChart } from "./portfolio-summary";
+import { CashFlowChart } from "./property-cashflow-chart";
 import { AddCashFlowForm } from "./add-cash-flow-form";
+import { CashFlowTableRow } from "./cash-flow-table-row";
 import { useAuth } from "@/lib/auth-context";
 
 interface MonthlyData {
@@ -40,8 +45,8 @@ interface MonthlyData {
   income: number;
   expenses: number;
   maintenance: number;
-  amount?: number;
-  [key: string]: number | string | Date | undefined;
+  amount: number; // Make this required to match ChartDataItem
+  [key: string]: number | string | Date;
 }
 
 interface PropertyCashFlowTabProps {
@@ -54,9 +59,7 @@ export function PropertyCashFlowTab({
   cashFlows: initialCashFlows, // Rename to indicate these are initial values
 }: PropertyCashFlowTabProps) {
   const { user } = useAuth();
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [period, setPeriod] = useState<string>("month");
-  const [selectedPeriod, setSelectedPeriod] = useState("6m");
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -76,9 +79,8 @@ export function PropertyCashFlowTab({
 
   const cashFlowTypes = [
     { label: "All Types", value: "all" },
-    { label: "Income", value: "income" },
-    { label: "Expenses", value: "expenses" },
-    { label: "Maintenance", value: "maintenance" },
+    { label: "Credit", value: "credit" },
+    { label: "Debit", value: "debit" },
   ];
 
   // Fetch cash flows from backend when period changes or component mounts
@@ -91,14 +93,64 @@ export function PropertyCashFlowTab({
         // Get the user ID from the auth context
         const userId = user?.id;
 
-        // Fetch filtered cash flows from the server
-        const data = await fetchFilteredCashFlows(
-          property.id,
-          selectedPeriod,
-          userId // Pass the user ID for filtering
-        );
+        let startDateStr: string | undefined;
+        let endDateStr: string | undefined;
+
+        // If custom date range is selected, use those dates
+        if (selectedPeriod === "custom" && dateRange) {
+          if (dateRange.from) {
+            startDateStr = dateRange.from.toISOString().split("T")[0];
+          }
+          if (dateRange.to) {
+            endDateStr = dateRange.to.toISOString().split("T")[0];
+          }
+        }
+
+        // Fetch cash flows from the server
+        const data = await fetchCashFlows(property.id);
         console.log("Fetched cash flows:", data);
-        setCashFlows(data);
+
+        // Apply client-side filtering based on period and date range
+        let filteredData = data || [];
+
+        if (filteredData.length > 0) {
+          // Apply period filtering
+          const now = new Date();
+          let filterStartDate: Date | null = null;
+
+          switch (selectedPeriod) {
+            case "6m":
+              filterStartDate = subMonths(now, 6);
+              break;
+            case "12m":
+              filterStartDate = subMonths(now, 12);
+              break;
+            case "ytd":
+              filterStartDate = new Date(now.getFullYear(), 0, 1);
+              break;
+            case "custom":
+              if (dateRange?.from) {
+                filterStartDate = dateRange.from;
+              }
+              break;
+            // "all" case doesn't need filtering
+          }
+
+          // Apply date filtering
+          if (filterStartDate) {
+            filteredData = filteredData.filter((cashFlow) => {
+              const cashFlowDate = new Date(cashFlow.timestamp);
+              const isAfterStart = cashFlowDate >= filterStartDate!;
+              const isBeforeEnd =
+                selectedPeriod === "custom" && dateRange?.to
+                  ? cashFlowDate <= dateRange.to
+                  : true;
+              return isAfterStart && isBeforeEnd;
+            });
+          }
+        }
+
+        setCashFlows(filteredData);
       } catch (error) {
         console.error("Error fetching cash flows:", error);
       } finally {
@@ -107,22 +159,7 @@ export function PropertyCashFlowTab({
     };
 
     loadCashFlows();
-  }, [property, selectedPeriod, user]);
-
-  // Format a date
-  const formatDate = (dateStr: string) => {
-    return format(new Date(dateStr), "MMM d, yyyy");
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  }, [property, selectedPeriod, dateRange, user]);
 
   // Calculate income, expenses, and net based on debit_credit field
   const incomeCashFlows = cashFlows.filter(
@@ -139,8 +176,8 @@ export function PropertyCashFlowTab({
   );
   const netCashFlow = totalIncome - totalExpenses;
 
-  // Generate monthly data for the table based on actual cash flows
-  const     generateMonthlyData = (): MonthlyData[] => {
+  // Generate monthly data for chart display
+  const generateMonthlyData = (): MonthlyData[] => {
     const months: Record<string, MonthlyData> = {};
 
     // Determine how many months to show based on selectedPeriod
@@ -164,12 +201,17 @@ export function PropertyCashFlowTab({
         income: 0,
         expenses: 0,
         maintenance: 0,
+        amount: 0,
       };
     }
 
     // Populate with real data from cash flows
     cashFlows.forEach((flow) => {
-      // Extract the year-month from the timestamp
+      if (!flow.timestamp) {
+        console.warn("Cash flow missing timestamp:", flow);
+        return;
+      }
+
       const monthStr = flow.timestamp.substring(0, 7); // yyyy-MM
 
       if (months[monthStr]) {
@@ -187,44 +229,61 @@ export function PropertyCashFlowTab({
             months[monthStr].expenses += flow.amount;
           }
         }
+
+        // Update net amount
+        months[monthStr].amount =
+          months[monthStr].income -
+          months[monthStr].expenses -
+          months[monthStr].maintenance;
       }
     });
 
-    // Convert to array and sort by date
+    // Convert to array and sort by date (most recent first)
     return Object.values(months).sort(
       (a, b) => b.date.getTime() - a.date.getTime()
     );
   };
 
-  // const monthlyData = generateMonthlyData();
+  const monthlyData = generateMonthlyData();
 
-  // Function to get filtered data based on selected period and type
-  const getFilteredCashFlowData = (): any[] => {
-    // Use our monthly data with real values from the backend
-    return generateMonthlyData()
+  // Filter cash flows based on selected type
+  const getFilteredCashFlows = (): CashFlow[] => {
+    if (selectedType === "all") {
+      return cashFlows;
+    }
+
+    return cashFlows.filter((flow) => {
+      if (selectedType === "credit") {
+        return flow.debit_credit === "CREDIT";
+      } else if (selectedType === "debit") {
+        return flow.debit_credit === "DEBIT";
+      }
+      return false;
+    });
   };
 
-  // Function to handle successful cash flow addition
+  const filteredCashFlows = getFilteredCashFlows();
+
+  console.log("Filtered cash flows:", filteredCashFlows);
+
+  // Function to handle successful cash flow addition/update/deletion
   const handleCashFlowSuccess = () => {
     setIsAddDialogOpen(false);
-    // Refresh cash flows instead of reloading the page
+    // Refresh cash flows
     if (property && property.id) {
       const loadCashFlows = async () => {
         try {
-          console.log(
-            "Refreshing cash flows for property:",
-            property.id,
-            selectedPeriod,
-            user?.id
-          );
-          const data = await fetchFilteredCashFlows(
-            property.id,
-            selectedPeriod,
-            user?.id
-          );
-          setCashFlows(data);
+          setIsLoading(true);
+          const data = await fetchCashFlows(property.id);
+          if (data) {
+            setCashFlows(data);
+          } else {
+            setCashFlows([]);
+          }
         } catch (error) {
           console.error("Error refreshing cash flows:", error);
+        } finally {
+          setIsLoading(false);
         }
       };
       loadCashFlows();
@@ -284,46 +343,52 @@ export function PropertyCashFlowTab({
             </div>
           ) : (
             <>
-              <BarChart
-                data={getFilteredCashFlowData()}
-                selectedType={selectedType}
-              />
+              <CashFlowChart data={monthlyData} selectedType={selectedType} />
 
               <div className="mt-8">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Month</TableHead>
-                      <TableHead className="text-right">Income</TableHead>
-                      <TableHead className="text-right">Expenses</TableHead>
-                      <TableHead className="text-right">Maintenance</TableHead>
-                      <TableHead className="text-right">Net Income</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Transaction Type</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-center">Type</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {getFilteredCashFlowData().map(
-                      (item: MonthlyData, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.month}</TableCell>
-                          <TableCell className="text-right">
-                            ${item.income.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            ${item.expenses.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            ${item.maintenance.toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            $
-                            {(
-                              item.income -
-                              item.expenses -
-                              item.maintenance
-                            ).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      )
+                    {filteredCashFlows.length > 0 ? (
+                      filteredCashFlows
+                        .sort(
+                          (a, b) =>
+                            new Date(b.timestamp).getTime() -
+                            new Date(a.timestamp).getTime()
+                        )
+                        .map((cashFlow) => (
+                          <CashFlowTableRow
+                            key={cashFlow.id}
+                            cashFlow={cashFlow}
+                            property={property}
+                            onUpdate={handleCashFlowSuccess}
+                            selectedType={selectedType}
+                          />
+                        ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="text-muted-foreground">
+                            {isLoading
+                              ? "Loading cash flows..."
+                              : "No cash flow entries found."}
+                            {!isLoading && (
+                              <p className="text-sm mt-2">
+                                Add your first cash flow entry to get started.
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </TableBody>
                 </Table>
