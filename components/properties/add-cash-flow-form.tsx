@@ -46,7 +46,7 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
       timestamp: currentDateTime,
       description: "",
       transaction_type: "",
-      amount: undefined,
+      amount: 0,
       debit_credit: "CREDIT", // Default to CREDIT (income)
     },
   });
@@ -125,7 +125,11 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
                         const date = new Date(e.target.value);
                         field.onChange(date);
                       }}
-                      value={field.value ? format(field.value, "yyyy-MM-dd'T'HH:mm") : ""}
+                      value={
+                        field.value instanceof Date && !isNaN(field.value.getTime())
+                          ? format(field.value, "yyyy-MM-dd'T'HH:mm")
+                          : ""
+                      }
                     />
                   </FormControl>
                 </div>

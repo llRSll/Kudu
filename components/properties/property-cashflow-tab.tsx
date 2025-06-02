@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, BarChart3, TrendingUp } from "lucide-react";
 import { Property } from "@/app/actions/properties";
 import {
   CashFlow,
@@ -63,6 +63,7 @@ export function PropertyCashFlowTab({
   const [selectedType, setSelectedType] = useState("all");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [chartView, setChartView] = useState<"single" | "multi">("multi");
 
   // Add state for storing cash flows from backend
   const [cashFlows, setCashFlows] = useState<CashFlow[]>(initialCashFlows);
@@ -245,6 +246,10 @@ export function PropertyCashFlowTab({
   };
 
   const monthlyData = generateMonthlyData();
+  
+  // Debug: Log the data being passed to the chart
+  console.log("Monthly data for chart:", monthlyData);
+  console.log("Cash flows count:", cashFlows.length);
 
   // Filter cash flows based on selected type
   const getFilteredCashFlows = (): CashFlow[] => {
@@ -301,6 +306,27 @@ export function PropertyCashFlowTab({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            {/* Chart View Toggle */}
+            <div className="flex items-center gap-1 mr-4">
+              <Button
+                variant={chartView === "single" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartView("single")}
+                className="px-3"
+              >
+                <TrendingUp className="h-4 w-4 mr-1" />
+                Net
+              </Button>
+              <Button
+                variant={chartView === "multi" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartView("multi")}
+                className="px-3"
+              >
+                <BarChart3 className="h-4 w-4 mr-1" />
+                Detailed
+              </Button>
+            </div>
             <FilterControls
               timePeriods={timePeriods}
               selectedPeriod={selectedPeriod}
@@ -333,7 +359,7 @@ export function PropertyCashFlowTab({
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="w-full">
           {isLoading ? (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -343,7 +369,13 @@ export function PropertyCashFlowTab({
             </div>
           ) : (
             <>
-              <CashFlowChart data={monthlyData} selectedType={selectedType} />
+              <CashFlowChart 
+                data={monthlyData} 
+                selectedType={selectedType}
+                chartView={chartView}
+                className="w-full"
+                height={400}
+              />
 
               <div className="mt-8">
                 <Table>

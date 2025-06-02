@@ -41,7 +41,11 @@ export function UpcomingCashFlows({ cashFlows }: UpcomingCashFlowsProps) {
           ) : (
             cashFlows.map(cashFlow => (
               <TableRow key={cashFlow.id}>
-                <TableCell>{format(new Date(cashFlow.date), "MMM d, yyyy")}</TableCell>
+                <TableCell>
+                  {isNaN(new Date(cashFlow.date).getTime())
+                    ? "Invalid date"
+                    : format(new Date(cashFlow.date), "MMM d, yyyy")}
+                </TableCell>
                 <TableCell>{cashFlow.description}</TableCell>
                 <TableCell>
                   <Badge variant={cashFlow.type === "income" ? "default" : "destructive"}>

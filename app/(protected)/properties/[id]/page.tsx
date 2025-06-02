@@ -11,7 +11,6 @@ import {
 import {
   fetchUpcomingCashFlows,
   fetchCashFlows,
-  fetchFilteredCashFlows,
 } from "@/app/actions/cashflows";
 import { Suspense } from "react";
 
@@ -47,12 +46,6 @@ export default async function PropertyPage({
     notFound();
   }
 
-  // Calculate date range (last 6 months for default)
-  const today = new Date();
-  const sixMonthsAgo = new Date(today);
-  sixMonthsAgo.setMonth(today.getMonth() - 6);
-  const startDate = sixMonthsAgo.toISOString().split('T')[0];
-  
   // Fetch all related data in parallel for efficiency
   const [
     financialSummary, // Now using our mocked implementation
@@ -67,7 +60,7 @@ export default async function PropertyPage({
     fetchMaintenanceItems(propertyId),
     fetchPropertyImages(propertyId),
     fetchUpcomingCashFlows(propertyId),
-    fetchCashFlows(propertyId, startDate), // Fetch last 6 months of data by default
+    fetchCashFlows(propertyId),
   ]);
 
   return (
