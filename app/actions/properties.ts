@@ -59,10 +59,11 @@ export interface Tenant {
   id: string
   property_id: string
   name: string
+  email: string
   lease_start: string
   lease_end: string
   rent_amount: number
-  status: 'active' | 'late' | 'ending'
+  status: "active" | "late" | "ending_soon" | "expired"
   created_at?: string
   updated_at?: string
 }
@@ -71,10 +72,10 @@ export interface MaintenanceItem {
   id: string
   property_id: string
   title: string
-  description: string
+  description?: string
   cost: number
-  date: string
-  status: 'scheduled' | 'completed' | 'pending'
+  due_date: string
+  status: "scheduled" | "in_progress" | "completed" | "overdue"
   created_at?: string
   updated_at?: string
 }
@@ -88,6 +89,44 @@ export interface PropertyImage {
   content_type: string
   created_at?: string
   is_primary?: boolean
+}
+
+export interface Valuation {
+  id: string
+  property_id: string
+  appraised_value: number
+  appraised_date: string
+  appraised_by: string
+  notes?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface MaintenanceSchedule {
+  id: string
+  property_id: string
+  title: string
+  description?: string
+  scheduled_date: string
+  cost: number
+  status: "scheduled" | "in_progress" | "completed" | "overdue"
+  assigned_to?: string
+  notes?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface FinancialDetails {
+  id: string
+  property_id: string
+  property_value: number
+  annual_income: number
+  annual_expenses: number
+  annual_net_income: number
+  cap_rate: number
+  last_updated: string
+  created_at?: string
+  updated_at?: string
 }
 
 /**
@@ -210,37 +249,6 @@ export async function upsertFinancialSummary(summary: FinancialSummary): Promise
  * TEMPORARILY DISABLED: Returns hardcoded data to prevent errors
  */
 export async function fetchTenants(propertyId: string): Promise<Tenant[]> {
-  // Return hardcoded tenants instead of querying the database
-  return [
-    {
-      id: 'tenant-1',
-      property_id: propertyId,
-      name: 'John Smith',
-      email: 'john.smith@example.com',
-      phone: '555-123-4567',
-      lease_start: new Date(2023, 5, 1).toISOString(),
-      lease_end: new Date(2024, 4, 30).toISOString(),
-      rent_amount: 1800,
-      payment_status: 'current',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'tenant-2',
-      property_id: propertyId,
-      name: 'Jane Doe',
-      email: 'jane.doe@example.com',
-      phone: '555-987-6543',
-      lease_start: new Date(2023, 2, 15).toISOString(),
-      lease_end: new Date(2024, 2, 14).toISOString(),
-      rent_amount: 1650,
-      payment_status: 'current',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-  
-  /* Original implementation:
   const supabase = getSupabaseAdmin()
   if (!supabase) return []
 
@@ -256,45 +264,12 @@ export async function fetchTenants(propertyId: string): Promise<Tenant[]> {
   }
 
   return data as Tenant[]
-  */
 }
 
 /**
  * Add a tenant
  * TEMPORARILY DISABLED: Returns mock data without saving to database
  */
-export async function addTenant(tenant: Omit<Tenant, 'id'>): Promise<Tenant | null> {
-  // Return a mock tenant with an id without saving to the database
-  const newTenant = {
-    ...tenant,
-    id: `tenant-${Date.now()}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-  
-  // Revalidate the path to refresh the UI
-  revalidatePath(`/properties/${tenant.property_id}`);
-  return newTenant;
-
-  /* Original implementation:
-  const supabase = getSupabaseAdmin()
-  if (!supabase) return null
-
-  const { data, error } = await supabase
-    .from('tenants')
-    .insert(tenant)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error adding tenant:', error)
-    return null
-  }
-
-  revalidatePath(`/properties/${tenant.property_id}`)
-  return data as Tenant
-  */
-}
 
 /**
  * Update a tenant
@@ -376,7 +351,7 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
       title: 'HVAC System Maintenance',
       description: 'Annual service check and filter replacement',
       cost: 350,
-      date: new Date(2023, 11, 15).toISOString(),
+      due_date: new Date(2023, 11, 15).toISOString(),
       status: 'scheduled',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -387,7 +362,7 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
       title: 'Roof Inspection',
       description: 'Check for damage after recent storm',
       cost: 275,
-      date: new Date(2023, 10, 5).toISOString(),
+      due_date: new Date(2023, 10, 5).toISOString(),
       status: 'completed',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -398,8 +373,8 @@ export async function fetchMaintenanceItems(propertyId: string): Promise<Mainten
       title: 'Plumbing Repair',
       description: 'Fix leaking faucet in master bathroom',
       cost: 180,
-      date: new Date(2023, 11, 28).toISOString(),
-      status: 'pending',
+      due_date: new Date(2023, 11, 28).toISOString(),
+      status: 'in_progress',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
@@ -751,4 +726,46 @@ export async function setPrimaryPropertyImage(id: string, propertyId: string): P
   revalidatePath(`/properties/${propertyId}`)
   return true
   */
+}
+
+/**
+ * Fetch valuations for a property
+ */
+export async function fetchValuations(propertyId: string): Promise<Valuation[]> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    .from('valuations')
+    .select('*')
+    .eq('property_id', propertyId)
+    .order('appraised_date', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching valuations:', error)
+    return []
+  }
+
+  return data as Valuation[]
+}
+
+/**
+ * Fetch maintenance schedule for a property
+ */
+export async function fetchMaintenanceSchedule(propertyId: string): Promise<MaintenanceSchedule[]> {
+  const supabase = getSupabaseAdmin()
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    .from('maintenance_schedule')
+    .select('*')
+    .eq('property_id', propertyId)
+    .order('scheduled_date', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching maintenance schedule:', error)
+    return []
+  }
+
+  return data as MaintenanceSchedule[]
 }
