@@ -58,7 +58,6 @@ export function CashFlowTableRow({
         return "bg-green-100 text-green-800";
       case "MAINTENANCE":
       case "REPAIR":
-      case "REPAIRS":
         return "bg-orange-100 text-orange-800";
       case "UTILITIES":
         return "bg-blue-100 text-blue-800";
@@ -77,12 +76,55 @@ export function CashFlowTableRow({
   return (
     <>
       <TableRow className="hover:bg-muted/50">
+        {/* Month */}
         <TableCell>
-          <div className="font-medium">{formatDate(cashFlow.timestamp)}</div>
-          <div className="text-sm text-muted-foreground">
-            {format(new Date(cashFlow.timestamp), "h:mm a")}
+          <div className="font-medium">
+            {format(new Date(cashFlow.timestamp), "MMM d")}
           </div>
         </TableCell>
+
+        {/* Income */}
+        <TableCell>
+          <div className="font-medium">{formatCurrency(cashFlow.income)}</div>
+        </TableCell>
+
+        {/* Expenses */}
+        <TableCell>
+          {
+            <div className="font-medium">
+              {formatCurrency(cashFlow.expenses)}
+            </div>
+          }
+        </TableCell>
+
+        {/* Maintenance */}
+        <TableCell>
+          {
+            <div className="font-medium">
+              {formatCurrency(cashFlow.maintenance)}
+            </div>
+          }
+        </TableCell>
+
+        {/* Net Income */}
+        <TableCell>
+          <div
+            className={`font-medium ${
+              Number(cashFlow.income) -
+                (Number(cashFlow.expenses) + Number(cashFlow.maintenance)) >=
+              0
+                ? "text-green-600"
+                : "text-red-600"
+            }`}
+          >
+            {formatCurrency(
+              Number(cashFlow.income) -
+                (Number(cashFlow.expenses) + Number(cashFlow.maintenance))
+            )}
+          </div>
+        </TableCell>
+
+        {/* Transaction Type */}
         <TableCell>
           <Badge
             variant="secondary"
@@ -93,12 +135,8 @@ export function CashFlowTableRow({
             {cashFlow.transaction_type}
           </Badge>
         </TableCell>
-        <TableCell>
-          <div className="font-medium">{cashFlow.description}</div>
-        </TableCell>
-        <TableCell className="text-right">
-          <div className="font-medium">{formatCurrency(cashFlow.amount)}</div>
-        </TableCell>
+
+        {/* Type (Credit/Debit) */}
         <TableCell className="text-center">
           <Badge
             variant={
@@ -108,6 +146,13 @@ export function CashFlowTableRow({
             {cashFlow.debit_credit === "CREDIT" ? "Credit" : "Debit"}
           </Badge>
         </TableCell>
+
+        {/* Description */}
+        <TableCell>
+          <div className="font-medium">{cashFlow.description}</div>
+        </TableCell>
+
+        {/* Actions */}
         <TableCell className="text-right">
           {/* Large screens: show icons directly */}
           <div className="hidden lg:flex justify-end gap-2">

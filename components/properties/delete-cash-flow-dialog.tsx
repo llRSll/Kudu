@@ -75,7 +75,7 @@ export function DeleteCashFlowDialog({ cashFlow, onSuccess, children }: DeleteCa
         <div className="mt-2 p-3 bg-muted rounded-md">
           <div className="text-sm">
             <div><strong>Description:</strong> {cashFlow.description}</div>
-            <div><strong>Amount:</strong> ${cashFlow.amount.toLocaleString()}</div>
+            <div><strong>Amount:</strong> ${ (cashFlow?.net_income ?? 0).toLocaleString() }</div>
             <div><strong>Type:</strong> {cashFlow.debit_credit === "CREDIT" ? "Income" : "Expense"}</div>
             <div><strong>Transaction Type:</strong> {cashFlow.transaction_type}</div>
           </div>

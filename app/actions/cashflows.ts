@@ -13,8 +13,9 @@ export interface CashFlow {
   timestamp: string;
   description: string;
   transaction_type: string;
+  maintenance_type?: string | null;
   debit_credit: "DEBIT" | "CREDIT";
-  amount: number;
+  // amount: number;
   // Additional computed fields for display
   month?: string;
   income?: number;
@@ -23,6 +24,7 @@ export interface CashFlow {
   net_income?: number;
   created_at?: string;
   updated_at?: string;
+
 }
 
 /**

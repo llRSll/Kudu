@@ -246,7 +246,7 @@ export function PropertyCashFlowTab({
   };
 
   const monthlyData = generateMonthlyData();
-  
+
   // Debug: Log the data being passed to the chart
   console.log("Monthly data for chart:", monthlyData);
   console.log("Cash flows count:", cashFlows.length);
@@ -369,8 +369,8 @@ export function PropertyCashFlowTab({
             </div>
           ) : (
             <>
-              <CashFlowChart 
-                data={monthlyData} 
+              <CashFlowChart
+                data={monthlyData}
                 selectedType={selectedType}
                 chartView={chartView}
                 className="w-full"
@@ -381,11 +381,15 @@ export function PropertyCashFlowTab({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Month</TableHead>
+                      {/* <TableHead className="text-right">Amount</TableHead> */}
+                      <TableHead>Income</TableHead>
+                      <TableHead>Expenses</TableHead>
+                      <TableHead>Maintenance</TableHead>
+                      <TableHead>Net Income</TableHead>
                       <TableHead>Transaction Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
                       <TableHead className="text-center">Type</TableHead>
+                      <TableHead>Description</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>

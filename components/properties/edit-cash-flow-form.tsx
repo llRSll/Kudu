@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Property } from "@/app/actions/properties";
 import { editCashFlowSchema, EditCashFlowFormValues } from "./cash-flow-schema";
 import { TRANSACTION_TYPES } from "./transaction-types";
+import { MAINTENANCE_TYPES } from "./maintenance-types";
 import { CashFlow } from "@/app/actions/cashflows";
 
 interface EditCashFlowFormProps {
@@ -53,6 +54,7 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
       transaction_type: "",
       amount: 0,
       debit_credit: "CREDIT",
+      maintenance_type: "",
     },
   });
   
@@ -70,6 +72,7 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
             transaction_type: cashFlow.transaction_type,
             amount: cashFlow.amount,
             debit_credit: cashFlow.debit_credit,
+            maintenance_type: cashFlow.maintenance_type || "",
           });
         } else {
           toast.error(result.error || "Failed to load cash flow data");
@@ -114,6 +117,9 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
         transaction_type: values.transaction_type,
         amount: values.amount,
         debit_credit: values.debit_credit,
+        maintenance_type: ["MAINTENANCE", "REPAIR", "REPAIRS"].includes(values.transaction_type) 
+          ? values.maintenance_type 
+          : null,
       };
       
       console.log('Cash flow updates being sent to server:', updates);
@@ -219,6 +225,37 @@ export function EditCashFlowForm({ property, cashFlowId, onSuccess, onCancel }: 
             </FormItem>
           )}
         />
+        
+        {/* Show maintenance type selection only for maintenance-related transaction types */}
+        {["MAINTENANCE", "REPAIR", "REPAIRS"].includes(form.watch("transaction_type")) && (
+          <FormField
+            control={form.control}
+            name="maintenance_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Maintenance Type</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select maintenance type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {MAINTENANCE_TYPES.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <div className="flex gap-4">
           <FormField

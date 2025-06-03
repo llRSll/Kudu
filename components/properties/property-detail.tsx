@@ -926,11 +926,11 @@ export function PropertyDetail({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Income</TableHead>
+                    <TableHead>Expenses</TableHead>
+                    <TableHead>Maintenance</TableHead>
+                    <TableHead>Net Income</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

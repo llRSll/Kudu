@@ -2,7 +2,6 @@
 export const TRANSACTION_TYPES = [
   { value: "RENT", label: "Rent", defaultType: "CREDIT" },
   { value: "REPAIR", label: "Repair", defaultType: "DEBIT" },
-  { value: "REPAIRS", label: "Repairs", defaultType: "DEBIT" },
   { value: "MORTGAGE", label: "Mortgage", defaultType: "DEBIT" },
   { value: "MAINTENANCE", label: "Maintenance", defaultType: "DEBIT" },
   { value: "UTILITIES", label: "Utilities", defaultType: "DEBIT" },
