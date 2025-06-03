@@ -64,10 +64,22 @@ interface PropertyDocument {
   starred: boolean;
   status: string;
   renewalDate?: string;
+  folderId?: string;
+}
+
+interface DocumentFolder {
+  id: string;
+  name: string;
+  count?: number;
+}
+
+// Extended property type to include documents
+interface ExtendedProperty extends Property {
+  documents?: PropertyDocument[];
 }
 
 interface PropertyDocumentsTabProps {
-  property: Property;
+  property: ExtendedProperty;
   // In a real app, these would be fetched from an API
   propertyDocuments: PropertyDocument[];
 }
@@ -78,6 +90,16 @@ export function PropertyDocumentsTab({
 }: PropertyDocumentsTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  
+  // Mock folders data
+  const documentFolders: DocumentFolder[] = [
+    { id: "legal", name: "Legal Documents", count: 3 },
+    { id: "tenant", name: "Tenant Leases", count: 2 },
+    { id: "financial", name: "Financial Records", count: 2 },
+    { id: "maintenance", name: "Maintenance Records", count: 2 },
+    { id: "other", name: "Other Documents", count: 0 },
+  ];
   
   // Mock document data for demonstration
   const mockDocuments: PropertyDocument[] = [
@@ -183,267 +205,208 @@ export function PropertyDocumentsTab({
     }
   };
   
+  // Mock sample documents based on folders
+  const mockDocsByFolder = {
+    legal: [
+      {
+        id: 1,
+        name: "Purchase Agreement",
+        type: "Legal",
+        uploadDate: "2020-06-10",
+        size: "2.4 MB",
+        folderId: "legal"
+      },
+      {
+        id: 2,
+        name: "Building Code Compliance",
+        type: "Legal",
+        uploadDate: "2021-09-12",
+        size: "3.6 MB",
+        folderId: "legal"
+      },
+      {
+        id: 3,
+        name: "Property Survey",
+        type: "Legal",
+        uploadDate: "2020-06-05",
+        size: "8.2 MB",
+        folderId: "legal"
+      }
+    ],
+    tenant: [
+      {
+        id: 4,
+        name: "Tenant Lease - Unit 101",
+        type: "Legal",
+        uploadDate: "2022-03-15",
+        size: "1.8 MB",
+        folderId: "tenant"
+      },
+      {
+        id: 5,
+        name: "Tenant Agreement - Office Space",
+        type: "Legal",
+        uploadDate: "2022-04-22",
+        size: "2.1 MB",
+        folderId: "tenant"
+      }
+    ],
+    financial: [
+      {
+        id: 6,
+        name: "Annual Financial Report 2024",
+        type: "Spreadsheet",
+        uploadDate: "2024-12-31",
+        size: "3.2 MB",
+        folderId: "financial"
+      },
+      {
+        id: 7,
+        name: "Q1 2025 Financial Statement",
+        type: "Spreadsheet",
+        uploadDate: "2025-04-10",
+        size: "2.5 MB",
+        folderId: "financial"
+      }
+    ],
+    maintenance: [
+      {
+        id: 8,
+        name: "HVAC Maintenance Schedule",
+        type: "Spreadsheet",
+        uploadDate: "2025-01-15",
+        size: "1.2 MB",
+        folderId: "maintenance"
+      },
+      {
+        id: 9,
+        name: "Roof Inspection Report",
+        type: "PDF",
+        uploadDate: "2025-02-28",
+        size: "4.5 MB",
+        folderId: "maintenance"
+      }
+    ],
+    other: []
+  };
+  
+  // Flatten all documents for "All Documents" view
+  const allDocuments = Object.values(mockDocsByFolder).flat();
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <CardTitle>Property Documents</CardTitle>
-              <CardDescription>
-                Manage all documents related to {property.name || 'this property'}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 gap-1">
-                <Filter className="h-3.5 w-3.5" />
-                Filter
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 gap-1">
-                <Download className="h-3.5 w-3.5" />
-                Export
-              </Button>
-              <DocumentUploadDialog />
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-2xl font-semibold">Property Documents</h2>
+            <p className="text-muted-foreground">Upload and manage property documents</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline">New Folder</Button>
+            <Button>Upload Document</Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-12 gap-6">
+          {/* Folders sidebar */}
+          <div className="col-span-3 space-y-1">
+            <h3 className="font-medium text-sm mb-3">Folders</h3>
+            
+            {documentFolders.map((folder) => (
+              <div 
+                key={folder.id}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
+                  selectedFolder === folder.id 
+                    ? "bg-secondary text-secondary-foreground" 
+                    : "hover:bg-secondary/30"
+                }`}
+                onClick={() => setSelectedFolder(folder.id)}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="text-sm">{folder.name}</span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {folder.count}
+                </span>
+              </div>
+            ))}
+            
+            <div 
+              className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
+                selectedFolder === null 
+                  ? "bg-secondary text-secondary-foreground" 
+                  : "hover:bg-secondary/30"
+              }`}
+              onClick={() => setSelectedFolder(null)}
+            >
+              <FileText className="h-4 w-4" />
+              <span className="text-sm">All Documents</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                9
+              </span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all">
-            <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="all">All Documents</TabsTrigger>
-                <TabsTrigger value="legal">Legal</TabsTrigger>
-                <TabsTrigger value="financial">Financial</TabsTrigger>
-                <TabsTrigger value="photos">Photos</TabsTrigger>
-                <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-              </TabsList>
-              <div className="relative max-w-sm">
-                <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search documents..." 
-                  className="pl-8 h-9" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <TabsContent value="all" className="mt-0 p-0">
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox 
-                          checked={selectedDocuments.length === filteredDocuments.length && filteredDocuments.length > 0}
-                          onCheckedChange={selectAllDocuments}
-                          aria-label="Select all documents"
-                        />
-                      </TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden md:table-cell">Type</TableHead>
-                      <TableHead className="hidden md:table-cell">Size</TableHead>
-                      <TableHead className="hidden md:table-cell">Date Added</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="w-[80px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDocuments.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6">
-                          {searchQuery ? (
-                            <div>
-                              <p className="text-muted-foreground">No documents matching "{searchQuery}"</p>
-                              <Button variant="link" onClick={() => setSearchQuery("")}>
-                                Clear search
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center">
-                              <p className="text-muted-foreground">No documents found for this property</p>
-                              <DocumentUploadDialog />
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredDocuments.map(doc => (
-                        <TableRow key={doc.id}>
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedDocuments.includes(doc.id.toString())}
-                              onCheckedChange={() => toggleDocumentSelection(doc.id)}
-                              aria-label={`Select ${doc.name}`}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              {doc.starred && <Star className="h-3 w-3 text-orange-400" />}
-                              {getFileIcon(doc.type)}
-                              <span className="font-medium truncate max-w-[250px]">{doc.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{doc.type}</TableCell>
-                          <TableCell className="hidden md:table-cell">{doc.size}</TableCell>
-                          <TableCell className="hidden md:table-cell">{formatDate(doc.uploadDate)}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {doc.tags.slice(0, 2).map(tag => (
-                                <Badge key={tag} variant="secondary" className="px-1 py-0 text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {doc.tags.length > 2 && (
-                                <Badge variant="outline" className="px-1 py-0 text-xs">
-                                  +{doc.tags.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Actions</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Preview
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Download
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Share2 className="mr-2 h-4 w-4" />
-                                  Share
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  {doc.starred ? (
-                                    <>
-                                      <Star className="mr-2 h-4 w-4" />
-                                      Remove Star
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Star className="mr-2 h-4 w-4" />
-                                      Star Document
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-            
-            {/* Other tabs would have similar content structure */}
-            <TabsContent value="legal" className="mt-0 p-0">
-              <div className="rounded-md border">
-                <Table>
-                  {/* Similar structure as above but filtered for legal documents */}
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox aria-label="Select all documents" />
-                      </TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="hidden md:table-cell">Type</TableHead>
-                      <TableHead className="hidden md:table-cell">Size</TableHead>
-                      <TableHead className="hidden md:table-cell">Date Added</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="w-[80px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredDocuments
-                      .filter(doc => doc.category === 'Legal')
-                      .length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-6">
-                          <p className="text-muted-foreground">No legal documents found</p>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredDocuments
-                        .filter(doc => doc.category === 'Legal')
-                        .map(doc => (
-                          <TableRow key={doc.id}>
-                            <TableCell>
-                              <Checkbox 
-                                checked={selectedDocuments.includes(doc.id.toString())}
-                                onCheckedChange={() => toggleDocumentSelection(doc.id)}
-                                aria-label={`Select ${doc.name}`}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {doc.starred && <Star className="h-3 w-3 text-orange-400" />}
-                                {getFileIcon(doc.type)}
-                                <span className="font-medium truncate max-w-[250px]">{doc.name}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="hidden md:table-cell">{doc.type}</TableCell>
-                            <TableCell className="hidden md:table-cell">{doc.size}</TableCell>
-                            <TableCell className="hidden md:table-cell">{formatDate(doc.uploadDate)}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {doc.tags.slice(0, 2).map(tag => (
-                                  <Badge key={tag} variant="secondary" className="px-1 py-0 text-xs">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        {selectedDocuments.length > 0 && (
-          <CardFooter className="flex justify-between border-t px-6 py-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{selectedDocuments.length} selected</span>
-              <Button size="sm" variant="outline" className="h-8">
-                <Download className="mr-1 h-3.5 w-3.5" />
-                Download
-              </Button>
-              <Button size="sm" variant="outline" className="h-8">
-                <Share2 className="mr-1 h-3.5 w-3.5" />
-                Share
-              </Button>
-              <Button size="sm" variant="outline" className="h-8 text-destructive hover:bg-destructive/10">
-                Delete
-              </Button>
-            </div>
-            <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelectedDocuments([])}>
-              Clear selection
-            </Button>
-          </CardFooter>
-        )}
-      </Card>
+          
+          {/* Document list */}
+          <div className="col-span-9">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Document Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Upload Date</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Show documents based on selected folder */}
+                {(selectedFolder === null ? allDocuments : mockDocsByFolder[selectedFolder as keyof typeof mockDocsByFolder] || []).map((doc) => (
+                  <TableRow key={doc.id}>
+                    <TableCell className="font-medium flex items-center">
+                      <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {doc.name}
+                    </TableCell>
+                    <TableCell>{doc.type}</TableCell>
+                    <TableCell>{formatDate(doc.uploadDate)}</TableCell>
+                    <TableCell>{doc.size}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm">View</Button>
+                        <Button variant="ghost" size="sm">Download</Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">More options</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Rename</DropdownMenuItem>
+                            <DropdownMenuItem>Move to Folder</DropdownMenuItem>
+                            <DropdownMenuItem>Replace</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                
+                {/* Show message when folder is empty */}
+                {selectedFolder !== null && 
+                 mockDocsByFolder[selectedFolder as keyof typeof mockDocsByFolder]?.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      This folder is empty. Upload documents or move them here.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
