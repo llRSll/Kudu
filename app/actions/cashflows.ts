@@ -50,7 +50,16 @@ export async function fetchUpcomingCashFlows(
     return [];
   }
 
-  return data as CashFlow[];
+  // Format and compute any additional fields needed for display
+  const formattedData = data?.map(cashFlow => ({
+    ...cashFlow,
+    income: cashFlow.income || 0,
+    expenses: cashFlow.expenses || 0,
+    maintenance: cashFlow.maintenance || 0,
+    net_income: (cashFlow.income || 0) - ((cashFlow.expenses || 0) + (cashFlow.maintenance || 0))
+  }));
+
+  return formattedData as CashFlow[];
 }
 
 /**

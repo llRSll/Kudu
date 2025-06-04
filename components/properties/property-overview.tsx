@@ -2,7 +2,13 @@
 
 import React from "react";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { PropertyImages } from "./property-images";
@@ -11,22 +17,14 @@ import { FinancialSummaryComponent } from "./financial-summary";
 import { TenantsSummary, MaintenanceSummary } from "./overview-summaries";
 import { UpcomingCashFlows } from "./upcoming-cashflows";
 import { MapPin } from "lucide-react";
-import { 
-  Property, 
-  FinancialSummary, 
-  Tenant, 
-  MaintenanceItem, 
-  PropertyImage 
+import {
+  Property,
+  FinancialSummary,
+  Tenant,
+  MaintenanceItem,
+  PropertyImage,
 } from "@/app/actions/properties";
-
-interface UpcomingCashFlow {
-  id: string;
-  date: string;
-  description: string;
-  type: 'income' | 'expense';
-  amount: number;
-  status: 'scheduled' | 'pending' | 'completed';
-}
+import { CashFlow } from "@/app/actions/cashflows";
 
 interface PropertyOverviewProps {
   property: Property;
@@ -34,7 +32,7 @@ interface PropertyOverviewProps {
   tenants: Tenant[];
   maintenanceItems: MaintenanceItem[];
   propertyImages: PropertyImage[];
-  upcomingCashFlows: UpcomingCashFlow[];
+  upcomingCashFlows: CashFlow[];
 }
 
 export function PropertyOverview({
@@ -43,7 +41,7 @@ export function PropertyOverview({
   tenants,
   maintenanceItems,
   propertyImages,
-  upcomingCashFlows
+  upcomingCashFlows,
 }: PropertyOverviewProps) {
   // Format full address
   const getFormattedAddress = () => {
@@ -52,11 +50,11 @@ export function PropertyOverview({
     else if (property.street_number && property.street_name) {
       parts.push(`${property.street_number} ${property.street_name}`);
     }
-    
+
     if (property.suburb) parts.push(property.suburb);
     if (property.state) parts.push(property.state);
     if (property.postcode) parts.push(property.postcode);
-    
+
     return parts.join(", ");
   };
 
@@ -65,10 +63,7 @@ export function PropertyOverview({
       <div className="grid gap-6 md:grid-cols-7">
         {/* Property image and main details */}
         <Card className="md:col-span-4">
-          <PropertyImages 
-            propertyId={property.id}
-            images={propertyImages}
-          />
+          <PropertyImages propertyId={property.id} images={propertyImages} />
           <CardHeader>
             <div className="flex justify-between">
               <div>
@@ -79,7 +74,9 @@ export function PropertyOverview({
                 </CardDescription>
               </div>
               <div className="text-right">
-                <div className="text-sm text-muted-foreground">Property Type</div>
+                <div className="text-sm text-muted-foreground">
+                  Property Type
+                </div>
                 <div className="font-medium">{property.type || "N/A"}</div>
               </div>
             </div>
@@ -88,36 +85,52 @@ export function PropertyOverview({
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
               <div>
                 <div className="text-sm text-muted-foreground">Value</div>
-                <div className="font-medium text-lg">${(property.value || 0).toLocaleString()}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Monthly Income</div>
-                <div className="font-medium text-lg">${(property.income || 0).toLocaleString()}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Monthly Expenses</div>
-                <div className="font-medium text-lg">${(property.expenses || 0).toLocaleString()}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Purchase Date</div>
                 <div className="font-medium text-lg">
-                  {property.purchase_date ? format(new Date(property.purchase_date), "MMM d, yyyy") : "N/A"}
+                  ${(property.value || 0).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Monthly Income
+                </div>
+                <div className="font-medium text-lg">
+                  ${(property.income || 0).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Monthly Expenses
+                </div>
+                <div className="font-medium text-lg">
+                  ${(property.expenses || 0).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">
+                  Purchase Date
+                </div>
+                <div className="font-medium text-lg">
+                  {property.purchase_date
+                    ? format(new Date(property.purchase_date), "MMM d, yyyy")
+                    : "N/A"}
                 </div>
               </div>
             </div>
-            
+
             {property.status !== "development" && (
               <div className="mt-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">Occupancy</div>
-                  <div className="text-sm font-medium">{property.occupancy || 0}%</div>
+                  <div className="text-sm font-medium">
+                    {property.occupancy || 0}%
+                  </div>
                 </div>
                 <Progress value={property.occupancy || 0} className="mt-2" />
               </div>
             )}
           </CardContent>
         </Card>
-        
+
         {/* Summary cards */}
         <div className="space-y-6 md:col-span-3">
           <Card>
@@ -130,7 +143,7 @@ export function PropertyOverview({
               />
             </CardContent>
           </Card>
-          
+
           {/* Quick info cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
@@ -141,10 +154,12 @@ export function PropertyOverview({
                 <TenantsSummary tenants={tenants} />
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Maintenance</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Maintenance
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <MaintenanceSummary maintenanceItems={maintenanceItems} />
@@ -153,7 +168,7 @@ export function PropertyOverview({
           </div>
         </div>
       </div>
-      
+
       {/* Property Details Section */}
       <Card>
         <CardHeader>
@@ -163,12 +178,14 @@ export function PropertyOverview({
           <PropertyDetails property={property} />
         </CardContent>
       </Card>
-      
+
       {/* Upcoming Cash Flows Section */}
       <Card>
         <CardHeader>
           <CardTitle>Upcoming Cash Flows</CardTitle>
-          <CardDescription>Next 5 scheduled transactions</CardDescription>
+          <CardDescription>
+            {upcomingCashFlows?.length || 0} upcoming cash flows
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <UpcomingCashFlows cashFlows={upcomingCashFlows} />

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { exportCashFlowToCsv } from "@/lib/utils/helpers";
+import { exportCashFlowToCsv, generateMonthlyChartData } from "@/lib/utils/helpers";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -46,7 +46,7 @@ interface MonthlyData {
   income: number;
   expenses: number;
   maintenance: number;
-  amount: number; // Make this required to match ChartDataItem
+  netIncome: number; // Net income (income - expenses - maintenance)
   [key: string]: number | string | Date;
 }
 
@@ -81,8 +81,9 @@ export function PropertyCashFlowTab({
 
   const cashFlowTypes = [
     { label: "All Types", value: "all" },
-    { label: "Credit", value: "credit" },
-    { label: "Debit", value: "debit" },
+    { label: "Income", value: "income" },
+    { label: "Expenses", value: "expenses" },
+    { label: "Maintenance", value: "maintenance" },
   ];
 
   // Fetch cash flows from backend when period changes or component mounts
@@ -163,90 +164,33 @@ export function PropertyCashFlowTab({
     loadCashFlows();
   }, [property, selectedPeriod, dateRange, user]);
 
-  // Calculate income, expenses, and net based on debit_credit field
-  const incomeCashFlows = cashFlows.filter(
-    (cf) => cf.debit_credit === "CREDIT"
-  );
-  const expenseCashFlows = cashFlows.filter(
-    (cf) => cf.debit_credit === "DEBIT"
-  );
+  // Calculate total income, expenses, maintenance, and net income
+  const totalIncome = cashFlows.reduce((sum, cf) => {
+    // Use income as a number
+    const income = typeof cf.income === 'string' ? parseFloat(cf.income) : (cf.income || 0);
+    return sum + income;
+  }, 0);
+  
+  const totalExpenses = cashFlows.reduce((sum, cf) => {
+    // Use expenses as a number
+    const expenses = typeof cf.expenses === 'string' ? parseFloat(cf.expenses) : (cf.expenses || 0);
+    return sum + expenses;
+  }, 0);
+  
+  const totalMaintenance = cashFlows.reduce((sum, cf) => {
+    // Use maintenance as a number
+    const maintenance = typeof cf.maintenance === 'string' ? parseFloat(cf.maintenance) : (cf.maintenance || 0);
+    return sum + maintenance;
+  }, 0);
+  
+  const netCashFlow = totalIncome - (totalExpenses + totalMaintenance);
 
-  const totalIncome = incomeCashFlows.reduce((sum, cf) => sum + cf.amount, 0);
-  const totalExpenses = expenseCashFlows.reduce(
-    (sum, cf) => sum + cf.amount,
-    0
-  );
-  const netCashFlow = totalIncome - totalExpenses;
-
-  // Generate monthly data for chart display
-  const generateMonthlyData = (): MonthlyData[] => {
-    const months: Record<string, MonthlyData> = {};
-
-    // Determine how many months to show based on selectedPeriod
-    const monthsToShow =
-      selectedPeriod === "12m"
-        ? 12
-        : selectedPeriod === "ytd"
-        ? new Date().getMonth() + 1
-        : selectedPeriod === "all"
-        ? 24
-        : 6; // Default to 6 months
-
-    // Create empty records for each month
-    for (let i = 0; i < monthsToShow; i++) {
-      const currentDate = subMonths(new Date(), i);
-      const monthStr = format(currentDate, "yyyy-MM");
-
-      months[monthStr] = {
-        date: currentDate,
-        month: format(currentDate, "MMM yyyy"),
-        income: 0,
-        expenses: 0,
-        maintenance: 0,
-        amount: 0,
-      };
-    }
-
-    // Populate with real data from cash flows
-    cashFlows.forEach((flow) => {
-      if (!flow.timestamp) {
-        console.warn("Cash flow missing timestamp:", flow);
-        return;
-      }
-
-      const monthStr = flow.timestamp.substring(0, 7); // yyyy-MM
-
-      if (months[monthStr]) {
-        if (flow.debit_credit === "CREDIT") {
-          months[monthStr].income += flow.amount;
-        } else if (flow.debit_credit === "DEBIT") {
-          // Check for maintenance type transactions
-          if (
-            flow.transaction_type === "MAINTENANCE" ||
-            flow.transaction_type === "REPAIR" ||
-            flow.transaction_type === "REPAIRS"
-          ) {
-            months[monthStr].maintenance += flow.amount;
-          } else {
-            months[monthStr].expenses += flow.amount;
-          }
-        }
-
-        // Update net amount
-        months[monthStr].amount =
-          months[monthStr].income -
-          months[monthStr].expenses -
-          months[monthStr].maintenance;
-      }
-    });
-
-    // Convert to array and sort by date (most recent first)
-    return Object.values(months).sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
-    );
-  };
-
-  const monthlyData = generateMonthlyData();
+  // Generate monthly data for chart display using our reusable utility function
+  const monthlyData = generateMonthlyChartData({
+    cashFlows,
+    selectedPeriod,
+    dateRange
+  });
 
   // Debug: Log the data being passed to the chart
   console.log("Monthly data for chart:", monthlyData);
@@ -259,10 +203,12 @@ export function PropertyCashFlowTab({
     }
 
     return cashFlows.filter((flow) => {
-      if (selectedType === "credit") {
-        return flow.debit_credit === "CREDIT";
-      } else if (selectedType === "debit") {
-        return flow.debit_credit === "DEBIT";
+      if (selectedType === "income") {
+        return Number(flow.income) > 0;
+      } else if (selectedType === "expenses") {
+        return Number(flow.expenses) > 0;
+      } else if (selectedType === "maintenance") {
+        return Number(flow.maintenance) > 0;
       }
       return false;
     });
@@ -282,12 +228,11 @@ export function PropertyCashFlowTab({
     // Format data for CSV export - use the actual cash flow data, not monthly summaries
     const exportData = filteredCashFlows.map((item) => ({
       month: new Date(item.timestamp),
-      income: item.income,
-      expenses: item.expenses,
-      maintenance: item.maintenance,
-      netIncome: item.net_income,
+      income: item.income || 0,
+      expenses: item.expenses || 0,
+      maintenance: item.maintenance || 0,
+      netIncome: (item.income || 0) - ((item.expenses || 0) + (item.maintenance || 0)),
       transactionType: item.transaction_type || "",
-      type: item.debit_credit,
       description: item.description || "",
     }));
 
