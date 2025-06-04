@@ -107,10 +107,8 @@ export function AddCashFlowForm({ property, onSuccess }: AddCashFlowFormProps) {
         maintenance: values.maintenance_cost,
       };
       // Log the payload before sending
-      console.log("Cash flow data being sent to server:", cashFlowData);
 
       const result = await addCashFlow(cashFlowData);
-
       if (result.success && result.data) {
         toast.success("Cash flow entry added successfully");
         form.reset();

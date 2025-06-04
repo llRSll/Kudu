@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { exportCashFlowToCsv } from "@/lib/utils/helpers";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -63,7 +64,7 @@ export function PropertyCashFlowTab({
   const [selectedType, setSelectedType] = useState("all");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [chartView, setChartView] = useState<"single" | "multi">("multi");
+  const [chartView] = useState<"single" | "multi">("multi");
 
   // Add state for storing cash flows from backend
   const [cashFlows, setCashFlows] = useState<CashFlow[]>(initialCashFlows);
@@ -271,6 +272,47 @@ export function PropertyCashFlowTab({
 
   console.log("Filtered cash flows:", filteredCashFlows);
 
+  // Function to handle CSV generation and download
+  const handleGenerateReport = () => {
+    if (filteredCashFlows.length === 0) {
+      alert("No cash flow data available to export");
+      return;
+    }
+
+    // Format data for CSV export - use the actual cash flow data, not monthly summaries
+    const exportData = filteredCashFlows.map((item) => ({
+      month: new Date(item.timestamp),
+      income: item.income,
+      expenses: item.expenses,
+      maintenance: item.maintenance,
+      netIncome: item.net_income,
+      transactionType: item.transaction_type || "",
+      type: item.debit_credit,
+      description: item.description || "",
+    }));
+
+    // Get period label for filename
+    const periodLabel =
+      timePeriods.find((p) => p.value === selectedPeriod)?.label ||
+      selectedPeriod;
+
+    // Get type label for filename
+    const typeLabel =
+      cashFlowTypes.find((t) => t.value === selectedType)?.label ||
+      selectedType;
+
+    // Create filename based on property name, period and type
+    const propertyName = property.name
+      ? property.name.toLowerCase().replace(/\s+/g, "-")
+      : "property";
+    const filename = `${propertyName}-cash-flow-${periodLabel
+      .toLowerCase()
+      .replace(/\s+/g, "-")}-${typeLabel.toLowerCase().replace(/\s+/g, "-")}`;
+
+    // Export to CSV
+    exportCashFlowToCsv(exportData, filename, periodLabel, selectedType);
+  };
+
   // Function to handle successful cash flow addition/update/deletion
   const handleCashFlowSuccess = () => {
     setIsAddDialogOpen(false);
@@ -307,26 +349,6 @@ export function PropertyCashFlowTab({
           </div>
           <div className="flex items-center gap-2">
             {/* Chart View Toggle */}
-            <div className="flex items-center gap-1 mr-4">
-              <Button
-                variant={chartView === "single" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setChartView("single")}
-                className="px-3"
-              >
-                <TrendingUp className="h-4 w-4 mr-1" />
-                Net
-              </Button>
-              <Button
-                variant={chartView === "multi" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setChartView("multi")}
-                className="px-3"
-              >
-                <BarChart3 className="h-4 w-4 mr-1" />
-                Detailed
-              </Button>
-            </div>
             <FilterControls
               timePeriods={timePeriods}
               selectedPeriod={selectedPeriod}
@@ -336,7 +358,7 @@ export function PropertyCashFlowTab({
               onTypeChange={setSelectedType}
               dateRange={dateRange}
               onDateRangeChange={(range) => setDateRange(range)}
-              onGenerateReport={() => console.log("Generating report")}
+              onGenerateReport={handleGenerateReport}
             />
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
