@@ -7,9 +7,14 @@ import {
   CartesianGrid,
   Legend,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
+} from "recharts"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartConfig,
 } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState } from "react"
@@ -36,6 +41,15 @@ const quarterlyData = [
   { month: "Q4", income: 740000, expenses: 315000 },
 ]
 
+const chartConfig = {
+  income: {
+    label: "Income",
+  },
+  expenses: {
+    label: "Expenses",
+  },
+} satisfies ChartConfig
+
 export function CashFlowChart() {
   const [timeframe, setTimeframe] = useState("monthly")
   const data = timeframe === "monthly" ? monthlyData : quarterlyData
@@ -58,53 +72,52 @@ export function CashFlowChart() {
         </Select>
       </CardHeader>
       <CardContent className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#525252" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#525252" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#a3a3a3" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#a3a3a3" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="month" tick={{ fill: "currentColor" }} />
-            <YAxis tickFormatter={(value) => `$${value / 1000}k`} tick={{ fill: "currentColor" }} />
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <Tooltip
-              formatter={(value) => [`$${value.toLocaleString()}`, undefined]}
-              labelFormatter={(label) => `${timeframe === "monthly" ? "Month" : "Quarter"}: ${label}`}
-              contentStyle={{
-                backgroundColor: "hsl(var(--background))",
-                color: "hsl(var(--foreground))",
-                borderColor: "hsl(var(--border))",
-              }}
-              labelStyle={{ color: "hsl(var(--foreground))" }}
-              itemStyle={{ color: "hsl(var(--foreground))" }}
-            />
-            <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>} />
-            <Area
-              type="monotone"
-              dataKey="income"
-              stroke="#525252"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorIncome)"
-              name="Income"
-            />
-            <Area
-              type="monotone"
-              dataKey="expenses"
-              stroke="#a3a3a3"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorExpenses)"
-              name="Expenses"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#525252" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#525252" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#a3a3a3" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#a3a3a3" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="month" tick={{ fill: "currentColor" }} />
+              <YAxis tickFormatter={(value) => `$${value / 1000}k`} tick={{ fill: "currentColor" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) => [`$${value.toLocaleString()}`, undefined]}
+                    labelFormatter={(label) => `${timeframe === "monthly" ? "Month" : "Quarter"}: ${label}`}
+                  />
+                }
+              />
+              <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>} />
+              <Area
+                type="monotone"
+                dataKey="income"
+                stroke="#525252"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorIncome)"
+                name="Income"
+              />
+              <Area
+                type="monotone"
+                dataKey="expenses"
+                stroke="#a3a3a3"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorExpenses)"
+                name="Expenses"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   )

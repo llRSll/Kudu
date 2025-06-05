@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Line, LineChart as Chart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "@/components/ui/chart"
+import { Line, LineChart as Chart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 const investments = [
   {

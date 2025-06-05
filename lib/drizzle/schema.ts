@@ -217,6 +217,7 @@ export const CashFlows = pgTable("cash_flows", {
   amount: numeric("amount"),
   debit_credit: text("debit_credit"),
   transaction_type: text("transaction_type"),
+  maintenance_type: text("maintenance_type"),
   description: text("description"),
   timestamp: timestamp("timestamp", { withTimezone: true }),
   user_id: uuid("user_id").references(() => Users.id),
