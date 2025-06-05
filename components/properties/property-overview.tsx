@@ -13,10 +13,10 @@ import { UpcomingCashFlows } from "./upcoming-cashflows";
 import { MapPin } from "lucide-react";
 import { 
   Property, 
-  FinancialSummary, 
+  FinancialDetails, 
   Tenant, 
-  MaintenanceItem, 
-  PropertyImage 
+  MaintenanceSchedule,
+  Valuation 
 } from "@/app/actions/properties";
 
 interface UpcomingCashFlow {
@@ -30,20 +30,18 @@ interface UpcomingCashFlow {
 
 interface PropertyOverviewProps {
   property: Property;
-  financialSummary: FinancialSummary | null;
+  financialDetails: FinancialDetails | null;
   tenants: Tenant[];
-  maintenanceItems: MaintenanceItem[];
-  propertyImages: PropertyImage[];
-  upcomingCashFlows: UpcomingCashFlow[];
+  maintenanceSchedule: MaintenanceSchedule[];
+  valuations: Valuation[];
 }
 
 export function PropertyOverview({
   property,
-  financialSummary,
+  financialDetails,
   tenants,
-  maintenanceItems,
-  propertyImages,
-  upcomingCashFlows
+  maintenanceSchedule,
+  valuations,
 }: PropertyOverviewProps) {
   // Format full address
   const getFormattedAddress = () => {

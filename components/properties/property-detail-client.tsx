@@ -11,18 +11,20 @@ import { PropertyCashFlowTab } from "./property-cashflow-tab";
 import { PropertyDocumentsTab } from "./property-documents-tab";
 import { 
   Property, 
-  FinancialSummary, 
+  FinancialDetails, 
   Tenant, 
-  MaintenanceItem, 
+  MaintenanceSchedule,
+  Valuation,
   PropertyImage 
 } from "@/app/actions/properties";
 import { CashFlow } from "@/app/actions/cashflows";
 
 interface PropertyDetailClientProps {
   property: Property;
-  financialSummary: FinancialSummary | null;
+  financialDetails: FinancialDetails | null;
   tenants: Tenant[];
-  maintenanceItems: MaintenanceItem[];
+  maintenanceSchedule: MaintenanceSchedule[];
+  valuations: Valuation[];
   propertyImages: PropertyImage[];
   upcomingCashFlows: CashFlow[];
   cashFlows: CashFlow[];
@@ -33,9 +35,10 @@ interface PropertyDetailClientProps {
 
 export function PropertyDetailClient({ 
   property, 
-  financialSummary,
+  financialDetails,
   tenants,
-  maintenanceItems,
+  maintenanceSchedule,
+  valuations,
   propertyImages,
   upcomingCashFlows,
   cashFlows = [],
@@ -88,10 +91,11 @@ export function PropertyDetailClient({
         <TabsContent value="overview" className="mt-6">
           <PropertyOverview 
             property={property}
-            financialSummary={financialSummary}
+            financialDetails={financialDetails}
             tenants={tenants}
-            maintenanceItems={maintenanceItems}
             propertyImages={propertyImages}
+            maintenanceSchedule={maintenanceSchedule}
+            valuations={valuations}
             upcomingCashFlows={upcomingCashFlows}
           />
         </TabsContent>
@@ -100,9 +104,10 @@ export function PropertyDetailClient({
         <TabsContent value="financial" className="mt-6">
           <FinancialTenantsTab 
             property={property}
-            financialSummary={financialSummary}
+            financialDetails={financialDetails}
             tenants={tenants}
-            maintenanceItems={maintenanceItems}
+            maintenanceSchedule={maintenanceSchedule}
+            valuations={valuations}
           />
         </TabsContent>
         
