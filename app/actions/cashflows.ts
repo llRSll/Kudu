@@ -13,8 +13,9 @@ export interface CashFlow {
   timestamp: string;
   description: string;
   transaction_type: string;
+  maintenance_type?: string | null;
   debit_credit: "DEBIT" | "CREDIT";
-  amount: number;
+  // amount: number;
   // Additional computed fields for display
   month?: string;
   income?: number;
@@ -23,6 +24,7 @@ export interface CashFlow {
   net_income?: number;
   created_at?: string;
   updated_at?: string;
+
 }
 
 /**
@@ -48,7 +50,16 @@ export async function fetchUpcomingCashFlows(
     return [];
   }
 
-  return data as CashFlow[];
+  // Format and compute any additional fields needed for display
+  const formattedData = data?.map(cashFlow => ({
+    ...cashFlow,
+    income: cashFlow.income || 0,
+    expenses: cashFlow.expenses || 0,
+    maintenance: cashFlow.maintenance || 0,
+    net_income: (cashFlow.income || 0) - ((cashFlow.expenses || 0) + (cashFlow.maintenance || 0))
+  }));
+
+  return formattedData as CashFlow[];
 }
 
 /**

@@ -32,6 +32,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import type { CustomComponents } from "react-day-picker"
 import React from "react"
+import { exportCashFlowToCsv } from "@/lib/utils/helpers"
 
 interface CashFlowData {
   month: string
@@ -641,13 +642,25 @@ export function PortfolioSummary({ properties }: { properties: Property[] }) {
       return
     }
     
-    const reportData = {
-      period: selectedPeriod,
-      type: selectedType,
-      data: getFilteredData()
-    }
-    console.log("Generating report with data:", reportData)
-    // In a real app, this would trigger a report generation and download
+    // Get filtered data for export
+    const filteredData = getFilteredData()
+    
+    // Get period label for filename
+    const periodLabel = timePeriods.find(p => p.value === selectedPeriod)?.label || selectedPeriod
+    
+    // Get property type label for filename
+    const typeLabel = propertyTypes.find(t => t.value === selectedType)?.label || selectedType
+    
+    // Create filename based on period and type
+    const filename = `cash-flow-${periodLabel.toLowerCase().replace(/\s+/g, '-')}-${typeLabel.toLowerCase().replace(/\s+/g, '-')}`
+    
+    // Export to CSV
+    exportCashFlowToCsv(
+      filteredData,
+      filename,
+      periodLabel,
+      selectedType
+    )
   }
 
   return (

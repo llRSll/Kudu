@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { TRANSACTION_TYPES } from "./transaction-types";
+import { MAINTENANCE_TYPES } from "./maintenance-types";
 
 // Schema for AddCashFlowForm
 export const cashFlowSchema = z.object({
@@ -14,10 +15,21 @@ export const cashFlowSchema = z.object({
   }, {
     message: "Please select a valid transaction type"
   }),
-  amount: z.coerce.number().positive("Amount must be a positive number"),
+  income: z.coerce.number().nonnegative("Income must be zero or positive"),
+  maintenance_cost: z.coerce.number().nonnegative("Maintenance cost must be zero or positive"),
+  expenses: z.coerce.number().nonnegative("Expenses must be zero or positive"),
+  // amount: z.coerce.number().positive("Amount must be a positive number"),
   debit_credit: z.enum(["DEBIT", "CREDIT"], {
     required_error: "Type is required",
   }),
+  maintenance_type: z.string().optional().refine(
+    (val) => {
+      return !val || MAINTENANCE_TYPES.some((type) => type.value === val);
+    },
+    {
+      message: "Please select a valid maintenance type"
+    }
+  ),
 });
 
 // Schema for EditCashFlowForm (similar but for editing)
